@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Shield, CheckCircle, Camera, QrCode, Loader2, AlertTriangle, X, Search, Building2, Calendar, Pill, Hash } from "lucide-react"
+import { Shield, CheckCircle, Camera, QrCode, Loader2, AlertTriangle, X, Search, Building2, Calendar, Pill, Hash, ExternalLink } from "lucide-react"
 
 interface NAFDACProduct {
   productName: string
@@ -195,12 +195,29 @@ export function PharmVerifyDemo() {
                         <X className="mx-auto mb-2 h-12 w-12 text-destructive" />
                         <p className="font-semibold text-destructive">Product Not Found</p>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          &quot;{searchQuery}&quot; is not in the NAFDAC database. This product may be unregistered or counterfeit.
+                          &quot;{searchQuery}&quot; is not in our database. Verify directly on NAFDAC Greenbook or report if suspicious.
                         </p>
-                        <Button variant="destructive" size="sm" className="mt-3 gap-2">
-                          <AlertTriangle className="h-4 w-4" />
-                          Report Suspicious Product
-                        </Button>
+                        <div className="mt-3 flex flex-col gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full gap-2"
+                            asChild
+                          >
+                            <a 
+                              href={`https://greenbook.nafdac.gov.ng/?s=${encodeURIComponent(searchQuery)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Search NAFDAC Greenbook
+                            </a>
+                          </Button>
+                          <Button variant="destructive" size="sm" className="w-full gap-2">
+                            <AlertTriangle className="h-4 w-4" />
+                            Report Suspicious Product
+                          </Button>
+                        </div>
                       </div>
                     )}
 
