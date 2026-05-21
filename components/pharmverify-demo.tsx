@@ -18,7 +18,9 @@ interface ScanResult {
   expiryDate: string
 }
 
-const mockResults: Record<string, ScanResult> = {
+// Database of verified products - supports batch numbers and drug names
+const mockDatabase: Record<string, ScanResult> = {
+  // Batch numbers
   "AMX-2024-001": {
     type: "verified",
     score: 98,
@@ -43,6 +45,163 @@ const mockResults: Record<string, ScanResult> = {
     batchNumber: "FAKE-001",
     expiryDate: "N/A",
   },
+  // Common drug names (case-insensitive matching handled below)
+  "amoxicillin": {
+    type: "verified",
+    score: 96,
+    productName: "Amoxicillin 500mg",
+    manufacturer: "GlaxoSmithKline",
+    batchNumber: "AMX-2024-087",
+    expiryDate: "Mar 2026",
+  },
+  "paracetamol": {
+    type: "verified",
+    score: 94,
+    productName: "Paracetamol 500mg",
+    manufacturer: "Emzor Pharmaceuticals",
+    batchNumber: "PAR-2024-201",
+    expiryDate: "Nov 2025",
+  },
+  "ibuprofen": {
+    type: "verified",
+    score: 97,
+    productName: "Ibuprofen 400mg",
+    manufacturer: "May & Baker Nigeria",
+    batchNumber: "IBU-2024-045",
+    expiryDate: "Jul 2026",
+  },
+  "metformin": {
+    type: "verified",
+    score: 95,
+    productName: "Metformin 500mg",
+    manufacturer: "Fidson Healthcare",
+    batchNumber: "MET-2024-112",
+    expiryDate: "Sep 2025",
+  },
+  "amlodipine": {
+    type: "verified",
+    score: 98,
+    productName: "Amlodipine 5mg",
+    manufacturer: "Swiss Pharma Nigeria",
+    batchNumber: "AML-2024-033",
+    expiryDate: "Feb 2026",
+  },
+  "ciprofloxacin": {
+    type: "verified",
+    score: 93,
+    productName: "Ciprofloxacin 500mg",
+    manufacturer: "Chi Pharmaceuticals",
+    batchNumber: "CIP-2024-078",
+    expiryDate: "Apr 2026",
+  },
+  "omeprazole": {
+    type: "verified",
+    score: 96,
+    productName: "Omeprazole 20mg",
+    manufacturer: "Neimeth Pharmaceuticals",
+    batchNumber: "OME-2024-156",
+    expiryDate: "Oct 2025",
+  },
+  "lisinopril": {
+    type: "verified",
+    score: 94,
+    productName: "Lisinopril 10mg",
+    manufacturer: "Shalina Healthcare",
+    batchNumber: "LIS-2024-089",
+    expiryDate: "Jun 2026",
+  },
+  "atorvastatin": {
+    type: "verified",
+    score: 97,
+    productName: "Atorvastatin 20mg",
+    manufacturer: "Ranbaxy Nigeria",
+    batchNumber: "ATO-2024-067",
+    expiryDate: "Aug 2026",
+  },
+  "azithromycin": {
+    type: "verified",
+    score: 95,
+    productName: "Azithromycin 250mg",
+    manufacturer: "Pfizer Nigeria",
+    batchNumber: "AZI-2024-142",
+    expiryDate: "May 2026",
+  },
+  "artemether": {
+    type: "verified",
+    score: 92,
+    productName: "Artemether-Lumefantrine",
+    manufacturer: "Novartis (Coartem)",
+    batchNumber: "ART-2024-203",
+    expiryDate: "Dec 2025",
+  },
+  "coartem": {
+    type: "verified",
+    score: 98,
+    productName: "Coartem (Artemether-Lumefantrine)",
+    manufacturer: "Novartis",
+    batchNumber: "COA-2024-091",
+    expiryDate: "Jan 2026",
+  },
+  "vitamin c": {
+    type: "verified",
+    score: 99,
+    productName: "Vitamin C 1000mg",
+    manufacturer: "Emzor Pharmaceuticals",
+    batchNumber: "VTC-2024-304",
+    expiryDate: "Dec 2026",
+  },
+  "folic acid": {
+    type: "verified",
+    score: 96,
+    productName: "Folic Acid 5mg",
+    manufacturer: "Juhel Nigeria",
+    batchNumber: "FOL-2024-118",
+    expiryDate: "Nov 2025",
+  },
+  "tramadol": {
+    type: "suspicious",
+    score: 34,
+    productName: "Tramadol 100mg (Unverified)",
+    manufacturer: "Unknown Source",
+    batchNumber: "TRM-UNKNOWN",
+    expiryDate: "Verification Required",
+  },
+  "codeine": {
+    type: "suspicious",
+    score: 28,
+    productName: "Codeine Syrup (Unverified)",
+    manufacturer: "Unregistered",
+    batchNumber: "COD-UNKNOWN",
+    expiryDate: "N/A",
+  },
+}
+
+// Function to find product by partial match or exact match
+function findProduct(input: string): ScanResult | null {
+  const searchTerm = input.toLowerCase().trim()
+  
+  // First try exact match
+  if (mockDatabase[searchTerm]) {
+    return mockDatabase[searchTerm]
+  }
+  
+  // Try uppercase for batch numbers
+  if (mockDatabase[input.toUpperCase()]) {
+    return mockDatabase[input.toUpperCase()]
+  }
+  
+  // Try partial match on drug names
+  for (const [key, value] of Object.entries(mockDatabase)) {
+    if (key.toLowerCase().includes(searchTerm) || searchTerm.includes(key.toLowerCase())) {
+      return value
+    }
+    // Also check product name
+    if (value.productName.toLowerCase().includes(searchTerm)) {
+      return value
+    }
+  }
+  
+  return null
 }
 
 export function PharmVerifyDemo() {
@@ -58,15 +217,15 @@ export function PharmVerifyDemo() {
     
     // Simulate scanning delay
     setTimeout(() => {
-      const foundResult = mockResults[batchNumber.toUpperCase()]
+      const foundResult = findProduct(batchNumber)
       if (foundResult) {
         setResult(foundResult)
       } else {
         setResult({
           type: "unknown",
           score: 0,
-          productName: "Product Not Found",
-          manufacturer: "Unknown",
+          productName: "Product Not in Database",
+          manufacturer: "Not Registered",
           batchNumber: batchNumber,
           expiryDate: "N/A",
         })
@@ -130,7 +289,7 @@ export function PharmVerifyDemo() {
             
             {showScanner && (
               <p className="mt-3 text-sm text-muted-foreground">
-                Try these batch numbers: <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">AMX-2024-001</code>, <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">PAR-2024-102</code>, or <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">FAKE-001</code>
+                Try drug names like <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">Amoxicillin</code>, <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">Paracetamol</code>, <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">Ibuprofen</code>, <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">Metformin</code>, or <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">Coartem</code>
               </p>
             )}
           </div>
@@ -156,7 +315,7 @@ export function PharmVerifyDemo() {
                     
                     <div className="space-y-3">
                       <Input
-                        placeholder="Enter batch number (e.g., AMX-2024-001)"
+                        placeholder="Enter drug name (e.g., Amoxicillin)"
                         value={batchNumber}
                         onChange={(e) => setBatchNumber(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleScan()}
