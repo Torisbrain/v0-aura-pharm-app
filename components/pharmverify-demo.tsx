@@ -18,32 +18,36 @@ interface NAFDACResult {
 }
 
 async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
-  // Simulated NAFDAC lookup — replace with your real API call if you have one
-  // For demo, we match against common Nigerian drugs
-  const db: NAFDACResult[] = [
-    { name: "Paracetamol 500mg", registrationNumber: "A4-0219", manufacturer: "Emzor Pharmaceuticals", approvalDate: "2019-03-12", strength: "500mg", status: "verified" },
-    { name: "Amoxicillin 250mg", registrationNumber: "A4-1032", manufacturer: "May & Baker Nigeria", approvalDate: "2020-07-01", strength: "250mg", status: "verified" },
-    { name: "Coartem 20/120mg", registrationNumber: "A4-0874", manufacturer: "Novartis", approvalDate: "2018-11-05", strength: "20/120mg", status: "verified" },
-    { name: "Metformin 500mg", registrationNumber: "A4-2201", manufacturer: "Fidson Healthcare", approvalDate: "2021-02-18", strength: "500mg", status: "verified" },
-    { name: "Lisinopril 10mg", registrationNumber: "A4-1789", manufacturer: "Pfizer Nigeria", approvalDate: "2019-09-30", strength: "10mg", status: "verified" },
-  ]
+  const res = await fetch("/api/nafdac", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query: query.trim() }),
+  })
 
-  await new Promise(r => setTimeout(r, 1200)) // simulate network delay
+  if (!res.ok) {
+    return {
+      name: query,
+      registrationNumber: "—",
+      manufacturer: "—",
+      approvalDate: "—",
+      status: "not_found",
+    }
+  }
 
-  const q = query.toLowerCase().trim()
-  const match = db.find(
-    d =>
-      d.name.toLowerCase().includes(q) ||
-      d.registrationNumber.toLowerCase().includes(q) ||
-      d.manufacturer.toLowerCase().includes(q)
-  )
+  const data = await res.json()
 
-  if (match) return match
-  return { name: query, registrationNumber: "—", manufacturer: "—", approvalDate: "—", status: "not_found" }
-}
-
-export function PharmVerifyDemo() {
-  const [mode, setMode] = useState<"idle" | "scanning" | "manual">("idle")
+  return {
+    name: data.name ?? query,
+    registrationNumber: data.registrationNumber ?? "—",
+    manufacturer: data.manufacturer ?? "—",
+    approvalDate: data.approvalDate ?? "—",
+    strength: data.activeIngredients,
+    status: data.status === "verified"
+      ? "verified"
+      : data.status === "suspicious"
+      ? "suspicious"
+      : "not_found",
+  }
   const [searchQuery, setSearchQuery] = useState("")
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<NAFDACResult | null>(null)
