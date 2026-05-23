@@ -1,5 +1,3 @@
-bash
-
 cat > /mnt/user-data/outputs/pharmverify-demo.tsx << 'ENDOFFILE'
 "use client"
 
