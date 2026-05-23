@@ -335,23 +335,23 @@ export function PharmVerifyDemo() {
                   )
                 })()}
 
-                {!result && !loading && mode !== "scanning" && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between rounded-lg bg-accent/10 p-3">
-                      <span className="text-sm font-medium">Authenticity Score</span>
-                      <span className="text-lg font-bold text-accent">—</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg bg-muted p-3">
-                      <span className="text-sm text-muted-foreground">Product Status</span>
-                      <span className="text-sm text-muted-foreground">Awaiting scan</span>
-                    </div>
+              {!result && !loading && mode !== "scanning" && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between rounded-lg bg-accent/10 p-3">
+                    <span className="text-sm font-medium">Authenticity Score</span>
+                    <span className="text-lg font-bold text-accent">—</span>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                  <div className="flex items-center justify-between rounded-lg bg-muted p-3">
+                    <span className="text-sm text-muted-foreground">Product Status</span>
+                    <span className="text-sm text-muted-foreground">Awaiting scan</span>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
   )
 }
