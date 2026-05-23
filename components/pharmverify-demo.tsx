@@ -1,3 +1,6 @@
+bash
+
+cat > /mnt/user-data/outputs/pharmverify-demo.tsx << 'ENDOFFILE'
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -5,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Shield, CheckCircle, Camera, QrCode, Search, Loader2, XCircle, AlertTriangle } from "lucide-react"
 
-// Dynamically imported so it doesn't break SSR
 let Html5Qrcode: any = null
 
 interface NAFDACResult {
@@ -48,6 +50,10 @@ async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
       ? "suspicious"
       : "not_found",
   }
+}
+
+export function PharmVerifyDemo() {
+  const [mode, setMode] = useState<"idle" | "scanning" | "manual">("idle")
   const [searchQuery, setSearchQuery] = useState("")
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<NAFDACResult | null>(null)
@@ -55,7 +61,6 @@ async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
   const scannerRef = useRef<any>(null)
   const scannerDivId = "pharm-qr-scanner"
 
-  // Load html5-qrcode lazily
   useEffect(() => {
     import("html5-qrcode").then(mod => {
       Html5Qrcode = mod.Html5Qrcode
@@ -67,7 +72,7 @@ async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
     setResult(null)
     setMode("scanning")
 
-    await new Promise(r => setTimeout(r, 100)) // let DOM render
+    await new Promise(r => setTimeout(r, 100))
 
     if (!Html5Qrcode) {
       setScanError("Scanner library not loaded yet. Try again in a moment.")
@@ -174,15 +179,15 @@ async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
 
             <p className="mb-6 text-pretty text-lg text-muted-foreground">
               Counterfeit medicines are a major public health threat in West Africa.
-              PharmVerify uses AI and our extensive database to verify product authenticity in seconds.
+              PharmVerify uses AI and the NAFDAC Greenbook to verify product authenticity in seconds.
             </p>
 
             <ul className="mb-8 space-y-4">
               {[
                 "Scan barcode or enter drug name / NAFDAC number",
                 "Checks against official NAFDAC Greenbook database",
-                "Get instant authenticity result",
-                "Report suspicious products directly",
+                "Get instant authenticity result powered by Claude AI",
+                "Report suspicious products directly to NAFDAC",
               ].map((item, index) => (
                 <li key={index} className="flex items-start gap-3">
                   <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
@@ -209,11 +214,10 @@ async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
                   <Shield className="h-6 w-6 text-accent-foreground" />
                 </div>
                 <CardTitle className="text-lg">NAFDAC Drug Verification</CardTitle>
-                <p className="text-xs text-muted-foreground">Powered by NAFDAC Greenbook Database</p>
+                <p className="text-xs text-muted-foreground">Powered by Claude AI + NAFDAC Greenbook</p>
               </CardHeader>
 
               <CardContent className="p-6">
-                {/* Scanner / placeholder area */}
                 <div className="mb-4 overflow-hidden rounded-lg border-2 border-dashed border-border bg-muted/50">
                   {mode === "scanning" ? (
                     <div className="relative">
@@ -244,7 +248,6 @@ async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
                   </p>
                 )}
 
-                {/* Manual search */}
                 <form onSubmit={handleManualSearch} className="mb-4 flex gap-2">
                   <input
                     type="text"
@@ -258,7 +261,6 @@ async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
                   </Button>
                 </form>
 
-                {/* Result */}
                 {loading && (
                   <div className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" /> Checking NAFDAC database…
@@ -280,18 +282,42 @@ async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
                         </span>
                       </div>
                       {result.status === "verified" && (
-                        <>
-                          <div className="rounded-lg bg-muted p-3 text-sm">
-                            <div className="font-medium">{result.name}</div>
-                            <div className="mt-1 text-xs text-muted-foreground">Reg: {result.registrationNumber}</div>
-                            <div className="text-xs text-muted-foreground">Mfr: {result.manufacturer}</div>
-                            <div className="text-xs text-muted-foreground">Approved: {result.approvalDate}</div>
-                          </div>
-                        </>
+                        <div className="rounded-lg bg-muted p-3 text-sm">
+                          <div className="font-medium">{result.name}</div>
+                          {result.strength && (
+                            <div className="mt-1 text-xs text-muted-foreground">Ingredients: {result.strength}</div>
+                          )}
+                          <div className="text-xs text-muted-foreground">Reg: {result.registrationNumber}</div>
+                          <div className="text-xs text-muted-foreground">Mfr: {result.manufacturer}</div>
+                          <div className="text-xs text-muted-foreground">Approved: {result.approvalDate}</div>
+                          <a
+                            href={`https://greenbook.nafdac.gov.ng/?search_term=${encodeURIComponent(result.name)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 inline-block text-xs text-accent hover:underline"
+                          >
+                            Verify on NAFDAC Greenbook →
+                          </a>
+                        </div>
                       )}
                       {result.status === "not_found" && (
-                        <p className="rounded-lg bg-yellow-50 p-3 text-xs text-yellow-700">
-                          This product was not found in the NAFDAC database. It may be unregistered or counterfeit. Do not use without consulting a pharmacist.
+                        <div className="space-y-2">
+                          <p className="rounded-lg bg-yellow-50 p-3 text-xs text-yellow-700">
+                            This product was not found in the NAFDAC database. It may be unregistered or counterfeit. Do not use without consulting a pharmacist.
+                          </p>
+                          <a
+                            href={`https://greenbook.nafdac.gov.ng/?search_term=${encodeURIComponent(result.name)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block text-xs text-accent hover:underline"
+                          >
+                            Search NAFDAC Greenbook directly →
+                          </a>
+                        </div>
+                      )}
+                      {result.status === "suspicious" && (
+                        <p className="rounded-lg bg-red-50 p-3 text-xs text-red-700">
+                          ⚠️ This product has been flagged as suspicious. Do not purchase or consume it. Report to NAFDAC immediately.
                         </p>
                       )}
                       <button onClick={reset} className="w-full rounded-md border border-border py-1.5 text-xs text-muted-foreground hover:bg-muted">
@@ -321,3 +347,5 @@ async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
     </section>
   )
 }
+ENDOFFILE
+echo "Done"
