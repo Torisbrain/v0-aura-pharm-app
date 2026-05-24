@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { BarChart3, AlertTriangle, Bell, Shield, Search, Loader2, CheckCircle, Package, TrendingUp, TrendingDown } from "lucide-react"
 
 function InventoryDemo() {
-  const inventory = [
+  const items = [
     { name: "Amoxicillin 500mg", stock: 12, status: "critical", trend: "down" },
     { name: "Paracetamol 500mg", stock: 340, status: "ok", trend: "up" },
     { name: "Coartem 20/120mg", stock: 8, status: "critical", trend: "down" },
@@ -19,14 +19,14 @@ function InventoryDemo() {
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">AI-powered stock forecast. Red = reorder now.</p>
-      {inventory.map((item) => (
+      {items.map((item) => (
         <div key={item.name} className={"flex items-center justify-between rounded-lg border p-3 " + (item.status === "critical" ? "border-red-200 bg-red-50" : item.status === "warning" ? "border-yellow-200 bg-yellow-50" : "border-green-200 bg-green-50")}>
           <div className="flex items-center gap-2">
             <Package className={"h-4 w-4 " + (item.status === "critical" ? "text-red-500" : item.status === "warning" ? "text-yellow-500" : "text-green-500")} />
             <span className="text-sm font-medium">{item.name}</span>
           </div>
-          <div className="flex items-center gap-3 text-sm">
-            <span className={"font-bold " + (item.status === "critical" ? "text-red-600" : item.status === "warning" ? "text-yellow-600" : "text-green-600")}>{item.stock} units</span>
+          <div className="flex items-center gap-3">
+            <span className={"text-sm font-bold " + (item.status === "critical" ? "text-red-600" : item.status === "warning" ? "text-yellow-600" : "text-green-600")}>{item.stock} units</span>
             {item.trend === "down" ? <TrendingDown className="h-4 w-4 text-red-400" /> : <TrendingUp className="h-4 w-4 text-green-400" />}
             {item.status !== "ok" && <span className={"rounded-full px-2 py-0.5 text-xs font-medium " + (item.status === "critical" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700")}>{item.status === "critical" ? "Reorder Now" : "Low Soon"}</span>}
           </div>
@@ -43,11 +43,11 @@ function InteractionDemo() {
   const [result, setResult] = useState(null as null | { safe: boolean; message: string; severity: string })
   const [loading, setLoading] = useState(false)
   const known = {
-    "warfarin+aspirin": { safe: false, message: "HIGH RISK: Warfarin + Aspirin significantly increases bleeding risk.", severity: "high" },
-    "metformin+alcohol": { safe: false, message: "WARNING: Metformin + Alcohol increases risk of lactic acidosis.", severity: "moderate" },
+    "warfarin+aspirin": { safe: false, message: "HIGH RISK: Significantly increases bleeding risk. Avoid or monitor INR closely.", severity: "high" },
+    "metformin+alcohol": { safe: false, message: "WARNING: Increases risk of lactic acidosis. Advise patient to avoid alcohol.", severity: "moderate" },
     "amoxicillin+metronidazole": { safe: true, message: "Generally safe combination. Monitor for GI side effects.", severity: "none" },
-    "lisinopril+potassium": { safe: false, message: "CAUTION: Can cause dangerous hyperkalemia. Monitor potassium.", severity: "high" },
-    "paracetamol+ibuprofen": { safe: true, message: "Safe at normal doses. Better pain relief than either alone.", severity: "none" },
+    "lisinopril+potassium": { safe: false, message: "CAUTION: Can cause dangerous hyperkalemia. Monitor potassium levels.", severity: "high" },
+    "paracetamol+ibuprofen": { safe: true, message: "Safe at normal doses. Provides better pain relief than either alone.", severity: "none" },
     "ciprofloxacin+antacid": { safe: false, message: "WARNING: Antacids reduce Ciprofloxacin absorption by 90%. Give 2hrs apart.", severity: "moderate" },
   } as Record<string, { safe: boolean; message: string; severity: string }>
   const check = () => {
@@ -189,5 +189,5 @@ export function Features() {
 ENDOFFILE
 
 git add components/features.tsx
-git commit -m "feat: clickable feature demos - inventory, interactions, adherence"
-git push origin main
+git commit -m "feat: clickable feature demos"
+git push --force origin main
