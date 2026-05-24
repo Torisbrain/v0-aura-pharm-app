@@ -22,17 +22,9 @@ async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query: query.trim() }),
   })
-  
   if (!res.ok) {
-    return {
-      name: query,
-      registrationNumber: "—",
-      manufacturer: "—",
-      approvalDate: "—",
-      status: "not_found",
-    }
+    return { name: query, registrationNumber: "—", manufacturer: "—", approvalDate: "—", status: "not_found" }
   }
-  
   const data = await res.json()
   return {
     name: data.name ?? query,
@@ -40,11 +32,7 @@ async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
     manufacturer: data.manufacturer ?? "—",
     approvalDate: data.approvalDate ?? "—",
     strength: data.activeIngredients,
-    status: data.status === "verified"
-      ? "verified"
-      : data.status === "suspicious"
-      ? "suspicious"
-      : "not_found",
+    status: data.status === "verified" ? "verified" : data.status === "suspicious" ? "suspicious" : "not_found",
   }
 }
 
@@ -67,16 +55,12 @@ export function PharmVerifyDemo() {
     setScanError("")
     setResult(null)
     setMode("scanning")
-    
-    // Gives React 150ms to mount the DOM container safely before booting the hardware track
-    await new Promise(r => setTimeout(r, 150))
-    
+    await new Promise(r => setTimeout(r, 100))
     if (!Html5Qrcode) {
       setScanError("Scanner library not loaded yet. Try again in a moment.")
       setMode("idle")
       return
     }
-
     try {
       const scanner = new Html5Qrcode(scannerDivId)
       scannerRef.current = scanner
@@ -103,9 +87,7 @@ export function PharmVerifyDemo() {
   const stopScanner = async () => {
     try {
       if (scannerRef.current) {
-        if (scannerRef.current.isScanning) {
-          await scannerRef.current.stop()
-        }
+        await scannerRef.current.stop()
         scannerRef.current = null
       }
     } catch (_) {}
@@ -126,12 +108,11 @@ export function PharmVerifyDemo() {
 
   const handleManualSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (loading) return
     runLookup(searchQuery)
   }
 
-  const reset = async () => {
-    await stopScanner()
+  const reset = () => {
+    stopScanner()
     setResult(null)
     setSearchQuery("")
     setScanError("")
@@ -164,7 +145,6 @@ export function PharmVerifyDemo() {
 
   return (
     <section id="pharmverify" className="bg-muted/50 px-4 py-20">
-<section id="pharmverify" className="bg-muted/50 px-4 py-20">
       <div className="container mx-auto">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div>
@@ -177,14 +157,14 @@ export function PharmVerifyDemo() {
             </h2>
             <p className="mb-6 text-pretty text-lg text-muted-foreground">
               Counterfeit medicines are a major public health threat in West Africa.
-              PharmVerify uses AI and the NAFDAC Greenbook to verify product authenticity in seconds.
+              PharmVerify uses AI and the NAFDAC database to verify product authenticity in seconds.
             </p>
             <ul className="mb-8 space-y-4">
               {[
                 "Scan barcode or enter drug name / NAFDAC number",
                 "Checks against official NAFDAC Greenbook database",
-                "Get instant authenticity result powered by Claude AI",
-                "Report suspicious products directly to NAFDAC",
+                "Get instant authenticity result",
+                "Report suspicious products directly",
               ].map((item, index) => (
                 <li key={index} className="flex items-start gap-3">
                   <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
@@ -202,7 +182,7 @@ export function PharmVerifyDemo() {
               Try PharmVerify Demo
             </Button>
           </div>
-          
+
           <div className="flex justify-center">
             <Card className="w-full max-w-sm border-2 border-accent/20 bg-card shadow-xl">
               <CardHeader className="border-b bg-accent/5 text-center">
@@ -210,25 +190,24 @@ export function PharmVerifyDemo() {
                   <Shield className="h-6 w-6 text-accent-foreground" />
                 </div>
                 <CardTitle className="text-lg">NAFDAC Drug Verification</CardTitle>
-                <p className="text-xs text-muted-foreground">Powered by Claude AI + NAFDAC Greenbook</p>
+                <p className="text-xs text-muted-foreground">Powered by NAFDAC Greenbook Database</p>
               </CardHeader>
+
               <CardContent className="p-6">
                 <div className="mb-4 overflow-hidden rounded-lg border-2 border-dashed border-border bg-muted/50">
-                  <div className={`w-full ${mode !== "scanning" ? "hidden" : "relative"}`}>
-                    <div id={scannerDivId} className="w-full" />
+                  {mode === "scanning" ? (
+                    <div className="relative">
+                      <div id={scannerDivId} className="w-full" />
+                      <button
+                        onClick={stopScanner}
+                        className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white"
+                        aria-label="Stop scanner"
+                      >
+                        <XCircle className="h-5 w-5" />
+                      </button>
+                    </div>
+                  ) : (
                     <button
-                      type="button"
-                      onClick={stopScanner}
-                      className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1 text-white m-1"
-                      aria-label="Stop scanner"
-                    >
-                      <XCircle className="h-5 w-5" />
-                    </button>
-                  </div>
-                  
-                  {mode !== "scanning" && (
-                    <button
-                      type="button"
                       onClick={startScanner}
                       className="flex w-full flex-col items-center justify-center gap-2 py-10 transition-colors hover:bg-accent/5"
                     >
@@ -250,9 +229,8 @@ export function PharmVerifyDemo() {
                     type="text"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    disabled={loading}
                     placeholder="Drug name, NAFDAC No, or ingredient"
-                    className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                    className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                   <Button type="submit" size="sm" disabled={loading || !searchQuery.trim()} className="bg-accent hover:bg-accent/90">
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
@@ -266,9 +244,7 @@ export function PharmVerifyDemo() {
                 )}
 
                 {result && !loading && (() => {
-                  const activeStatus = result.status in statusConfig ? result.status : "not_found"
-                  const cfg = statusConfig[activeStatus]
-                  
+                  const cfg = statusConfig[result.status]
                   return (
                     <div className="space-y-2">
                       <div className={`flex items-center justify-between rounded-lg p-3 ${cfg.bg}`}>
@@ -281,77 +257,51 @@ export function PharmVerifyDemo() {
                           {cfg.icon} {cfg.label}
                         </span>
                       </div>
-                      
                       {result.status === "verified" && (
                         <div className="rounded-lg bg-muted p-3 text-sm">
                           <div className="font-medium">{result.name}</div>
-                          {result.strength && (
-                            <div className="mt-1 text-xs text-muted-foreground">Ingredients: {result.strength}</div>
-                          )}
-                          <div className="text-xs text-muted-foreground">Reg: {result.registrationNumber}</div>
+                          <div className="mt-1 text-xs text-muted-foreground">Reg: {result.registrationNumber}</div>
                           <div className="text-xs text-muted-foreground">Mfr: {result.manufacturer}</div>
                           <div className="text-xs text-muted-foreground">Approved: {result.approvalDate}</div>
-                          <a
-                            href={`https://greenbook.nafdac.gov.ng/?search_term=${encodeURIComponent(result.name)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-2 inline-block text-xs text-accent hover:underline"
-                          >
-                            Verify on NAFDAC Greenbook →
-                          </a>
+                          {result.strength && (
+                            <div className="text-xs text-muted-foreground">Ingredients: {result.strength}</div>
+                          )}
                         </div>
                       )}
-                      
                       {result.status === "not_found" && (
-                        <div className="space-y-2">
-                          <p className="rounded-lg bg-yellow-50 p-3 text-xs text-yellow-700">
-                            This product was not found in the NAFDAC database. It may be unregistered or counterfeit. Do not use without consulting a pharmacist.
-                          </p>
-                          <a
-                            href={`https://greenbook.nafdac.gov.ng/?search_term=${encodeURIComponent(result.name)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block text-xs text-accent hover:underline"
-                          >
-                            Search NAFDAC Greenbook directly →
-                          </a>
-                        </div>
-                      )}
-                      
-                      {result.status === "suspicious" && (
-                        <p className="rounded-lg bg-red-50 p-3 text-xs text-red-700">
-                          ⚠️ This product has been flagged as suspicious. Do not purchase or consume it. Report to NAFDAC immediately.
+                        <p className="rounded-lg bg-yellow-50 p-3 text-xs text-yellow-700">
+                          This product was not found in the NAFDAC database. It may be unregistered or counterfeit. Do not use without consulting a pharmacist.
                         </p>
                       )}
-                      
-                      <button 
-                        type="button"
-                        onClick={reset} 
-                        className="w-full rounded-md border border-border py-1.5 text-xs text-muted-foreground hover:bg-muted"
-                      >
+                      {result.status === "suspicious" && (
+                        <p className="rounded-lg bg-red-50 p-3 text-xs text-red-700">
+                          ⚠️ This product has been flagged as suspicious. Do not purchase or consume it.
+                        </p>
+                      )}
+                      <button onClick={reset} className="w-full rounded-md border border-border py-1.5 text-xs text-muted-foreground hover:bg-muted">
                         Search another product
                       </button>
                     </div>
                   )
                 })()}
 
-              {!result && !loading && mode !== "scanning" && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between rounded-lg bg-accent/10 p-3">
-                    <span className="text-sm font-medium">Authenticity Score</span>
-                    <span className="text-lg font-bold text-accent">—</span>
+                {!result && !loading && mode === "idle" && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between rounded-lg bg-accent/10 p-3">
+                      <span className="text-sm font-medium">Authenticity Score</span>
+                      <span className="text-lg font-bold text-accent">—</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg bg-muted p-3">
+                      <span className="text-sm text-muted-foreground">Product Status</span>
+                      <span className="text-sm text-muted-foreground">Awaiting scan</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg bg-muted p-3">
-                    <span className="text-sm text-muted-foreground">Product Status</span>
-                    <span className="text-sm text-muted-foreground">Awaiting scan</span>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
   )
 }
