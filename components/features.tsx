@@ -1,6 +1,4 @@
-python3 << 'PYEOF'
-content = open('components/features.tsx', 'w')
-content.write('''
+cat > components/features.tsx << 'ENDOFFILE'
 "use client"
 
 import { useState } from "react"
@@ -8,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { BarChart3, AlertTriangle, Bell, Shield, Search, Loader2, CheckCircle, Package, TrendingUp, TrendingDown } from "lucide-react"
-import React from "react"
 
 function InventoryDemo() {
   const items = [
@@ -45,14 +42,14 @@ function InteractionDemo() {
   const [drug2, setDrug2] = useState("")
   const [result, setResult] = useState(null as null | { safe: boolean; message: string; severity: string })
   const [loading, setLoading] = useState(false)
-  const known: Record<string, { safe: boolean; message: string; severity: string }> = {
+  const known = {
     "warfarin+aspirin": { safe: false, message: "HIGH RISK: Significantly increases bleeding risk. Avoid or monitor INR closely.", severity: "high" },
     "metformin+alcohol": { safe: false, message: "WARNING: Increases risk of lactic acidosis. Advise patient to avoid alcohol.", severity: "moderate" },
     "amoxicillin+metronidazole": { safe: true, message: "Generally safe combination. Monitor for GI side effects.", severity: "none" },
     "lisinopril+potassium": { safe: false, message: "CAUTION: Can cause dangerous hyperkalemia. Monitor potassium levels.", severity: "high" },
-    "paracetamol+ibuprofen": { safe: true, message: "Safe at normal doses. Better pain relief than either alone.", severity: "none" },
+    "paracetamol+ibuprofen": { safe: true, message: "Safe at normal doses. Provides better pain relief than either alone.", severity: "none" },
     "ciprofloxacin+antacid": { safe: false, message: "WARNING: Antacids reduce Ciprofloxacin absorption by 90%. Give 2hrs apart.", severity: "moderate" },
-  }
+  } as Record<string, { safe: boolean; message: string; severity: string }>
   const check = () => {
     if (!drug1.trim() || !drug2.trim()) return
     setLoading(true)
@@ -189,10 +186,7 @@ export function Features() {
     </section>
   )
 }
-''')
-content.close()
-print("Done")
-PYEOF
+ENDOFFILE
 
 git add components/features.tsx
 git commit -m "feat: clickable feature demos"
