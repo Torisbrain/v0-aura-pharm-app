@@ -187,7 +187,3 @@ export function Features() {
   )
 }
 ENDOFFILE
-
-git add components/features.tsx
-git commit -m "feat: clickable feature demos"
-git push --force origin main
