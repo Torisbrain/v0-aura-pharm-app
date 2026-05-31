@@ -5,6 +5,7 @@ import { PharmVerifyDemo } from "@/components/pharmverify-demo"
 import { Stats } from "@/components/stats"
 import { Pricing } from "@/components/pricing"
 import { Footer } from "@/components/footer"
+import { NearbyPharmacies } from "@/components/nearby-pharmacies"
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
         <PharmVerifyDemo />
         <Stats />
         <Pricing />
+        <NearbyPharmacies />
       </main>
       <Footer />
     </div>
