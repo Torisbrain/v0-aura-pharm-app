@@ -100,8 +100,6 @@ export function Header() {
             <Link href="#pharmverify" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">PharmVerify</Link>
             <Link href="#pricing" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Pricing</Link>
             <Link href="#nearby" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Nearby</Link>
-            <Link href="#nearby" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Nearby</Link>
-            <Link href="#nearby" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Nearby</Link>
             <Link href="#contact" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Contact</Link>
           </nav>
 
@@ -121,9 +119,7 @@ export function Header() {
               <Link href="#features" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>Features</Link>
               <Link href="#pharmverify" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>PharmVerify</Link>
               <Link href="#pricing" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
-              <Link href="#nearby" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Nearby</Link>
-            <Link href="#nearby" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Nearby</Link>
-            <Link href="#contact" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
+              <Link href="#contact" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
               <div className="flex flex-col gap-2 pt-4 border-t">
                 <Button variant="ghost" size="sm" onClick={() => { setAuthMode("signin"); setMobileMenuOpen(false) }}>Sign In</Button>
                 <Button size="sm" onClick={() => { setAuthMode("signup"); setMobileMenuOpen(false) }}>Get Started</Button>

@@ -44,8 +44,7 @@ export function NearbyPharmacies() {
         const { latitude: lat, longitude: lon } = pos.coords
         setUserLocation({ lat, lon })
         try {
-          const query = `[out:json][timeout:25];(node["amenity"="pharmacy"](around:3000,${lat},${lon});way["amenity"="pharmacy"](around:3000,${lat},${lon}););out body;`
-          const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`)
+          const res = await fetch(`/api/pharmacies?lat=${lat}&lon=${lon}`)
           const data = await res.json()
           const results: Pharmacy[] = (data.elements || [])
             .filter((el: any) => el.tags?.name)
