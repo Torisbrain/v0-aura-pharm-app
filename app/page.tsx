@@ -6,6 +6,7 @@ import { Stats } from "@/components/stats"
 import { Pricing } from "@/components/pricing"
 import { Footer } from "@/components/footer"
 import { NearbyPharmacies } from "@/components/nearby-pharmacies"
+import { NearbyPharmacies } from "@/components/nearby-pharmacies"
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
         <PharmVerifyDemo />
         <Stats />
         <Pricing />
+        <NearbyPharmacies />
         <NearbyPharmacies />
       </main>
       <Footer />
