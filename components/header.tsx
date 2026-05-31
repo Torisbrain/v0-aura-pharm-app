@@ -101,6 +101,7 @@ export function Header() {
             <Link href="#pricing" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Pricing</Link>
             <Link href="#nearby" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Nearby</Link>
             <Link href="#nearby" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Nearby</Link>
+            <Link href="#nearby" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Nearby</Link>
             <Link href="#contact" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Contact</Link>
           </nav>
 
