@@ -3,25 +3,27 @@ import { NextRequest, NextResponse } from "next/server"
 export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json()
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY!,
-        "anthropic-version": "2023-06-01",
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: "llama-3.1-8b-instant",
         max_tokens: 1024,
-        system: "You are AuraBot, an AI pharmacy assistant for AuraBridge Health in Nigeria and West Africa. Help with drug questions, interactions, NAFDAC, dosages, and pharmacy operations. Be concise and professional.",
-        messages: messages.map((m: any) => ({ role: m.role, content: m.content })),
+        messages: [
+          { role: "system", content: "You are AuraBot, an AI pharmacy assistant for AuraBridge Health in Nigeria and West Africa. Help with drug questions, interactions, NAFDAC, dosages, and pharmacy operations. Be concise and professional." },
+          ...messages
+        ],
       }),
     })
     const data = await response.json()
-    console.log("Anthropic response status:", response.status)
-    console.log("Anthropic data:", JSON.stringify(data).slice(0, 300))
-    const text = data.content?.[0]?.text
-    if (!text) return NextResponse.json({ message: "No response from AI." })
+    const text = data.choices?.[0]?.message?.content
+    if (!text) {
+      console.error("Groq response:", JSON.stringify(data))
+      return NextResponse.json({ message: "No response from AI." })
+    }
     return NextResponse.json({ message: text })
   } catch (err) {
     console.error("Chat error:", err)
