@@ -8,6 +8,13 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  manifest: '/manifest.json',
+  themeColor: '#16a34a',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'AuraBridge',
+  },
   title: 'AuraBridge Health - AI Pharmacy Intelligence for West Africa',
   description: 'AI pharmacy intelligence built for Nigeria and West Africa. Inventory forecasting, drug interaction checks, adherence nudges, and counterfeit detection.',
   generator: 'v0.app',
