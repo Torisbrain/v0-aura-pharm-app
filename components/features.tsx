@@ -43,30 +43,37 @@ function InteractionDemo() {
   const [drug2, setDrug2] = useState("")
   const [result, setResult] = useState<null | { safe: boolean; message: string; severity: string }>(null)
   const [loading, setLoading] = useState(false)
-
-  const knownInteractions: Record<string, { safe: boolean; message: string; severity: string }> = {
-    "warfarin+aspirin": { safe: false, message: "HIGH RISK: Warfarin + Aspirin significantly increases bleeding risk. Avoid combination or monitor INR closely.", severity: "high" },
-    "metformin+alcohol": { safe: false, message: "WARNING: Metformin + Alcohol increases risk of lactic acidosis. Advise patient to avoid alcohol.", severity: "moderate" },
-    "amoxicillin+metronidazole": { safe: true, message: "This combination is commonly used and generally safe. Monitor for GI side effects.", severity: "none" },
-    "lisinopril+potassium": { safe: false, message: "CAUTION: Lisinopril + Potassium supplements can cause dangerous hyperkalemia. Monitor serum potassium.", severity: "high" },
-    "paracetamol+ibuprofen": { safe: true, message: "Safe to combine at normal doses. Provides better pain relief than either alone.", severity: "none" },
-    "ciprofloxacin+antacid": { safe: false, message: "WARNING: Antacids reduce Ciprofloxacin absorption by up to 90%. Give Ciprofloxacin 2 hours before antacid.", severity: "moderate" },
-  }
-
-  const check = () => {
+  const check = async () => {
     if (!drug1.trim() || !drug2.trim()) return
     setLoading(true)
-    setTimeout(() => {
-      const key1 = `${drug1.toLowerCase().trim()}+${drug2.toLowerCase().trim()}`
-      const key2 = `${drug2.toLowerCase().trim()}+${drug1.toLowerCase().trim()}`
-      const res = knownInteractions[key1] || knownInteractions[key2] || {
-        safe: true,
-        message: `No known major interactions found between ${drug1} and ${drug2}. Always verify with a pharmacist for patient-specific factors.`,
-        severity: "none"
-      }
-      setResult(res)
+    setResult(null)
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [{
+            role: "user",
+            content: `Check drug interaction between ${drug1} and ${drug2}. Reply with: 1) Is it safe? (yes/no) 2) Severity (none/moderate/high) 3) Brief explanation in 2-3 sentences. Format: SAFE: yes/no | SEVERITY: level | INFO: explanation`
+          }]
+        })
+      })
+      const data = await res.json()
+      const text = data.message || ""
+      const isSafe = text.toLowerCase().includes("safe: yes")
+      const isHigh = text.toLowerCase().includes("severity: high")
+      const isMod = text.toLowerCase().includes("severity: moderate")
+      const infoMatch = text.match(/INFO:\s*(.+)/i)
+      setResult({
+        safe: isSafe,
+        message: infoMatch ? infoMatch[1] : text,
+        severity: isHigh ? "high" : isMod ? "moderate" : "none"
+      })
+    } catch {
+      setResult({ safe: true, message: "Could not check interaction. Please consult a pharmacist.", severity: "none" })
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
   return (
@@ -94,7 +101,7 @@ function InteractionDemo() {
           </div>
         </div>
       )}
-      <p className="text-xs text-muted-foreground">Try: warfarin + aspirin, metformin + alcohol, ciprofloxacin + antacid</p>
+      <p className="text-xs text-muted-foreground">Powered by AI — ask about any two medications</p>
     </div>
   )
 }
@@ -214,7 +221,7 @@ export function Features() {
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base leading-relaxed">{feature.description}</CardDescription>
-                <p className="mt-3 text-xs font-medium text-primary">{feature.href ? "View demo ↓" : "Try demo →"}</p>
+                <p className="mt-3 text-xs font-medium text-primary">{feature.href ? "Check it ↓" : "Try it →"}</p>
               </CardContent>
             </Card>
           ))}
