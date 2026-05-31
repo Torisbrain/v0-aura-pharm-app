@@ -18,9 +18,7 @@ export default function Home() {
         <Stats />
         <Pricing />
         <NearbyPharmacies />
-        <NearbyPharmacies />
-        <NearbyPharmacies />
-      </main>
+</main>
       <Footer />
     </div>
   )
