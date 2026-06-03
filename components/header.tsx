@@ -9,12 +9,35 @@ import { useState } from "react"
 function AuthDialog({ mode, onClose }: { mode: "signin" | "signup"; onClose: () => void }) {
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
+  const [error, setError] = useState("")
   const [form, setForm] = useState({ name: "", email: "", password: "", pharmacy: "" })
 
-  const handle = (e: React.FormEvent) => {
+  const handle = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setTimeout(() => { setLoading(false); setDone(true) }, 1500)
+    setError("")
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, mode }),
+      })
+      const data = await res.json()
+      if (data.error) {
+        setError(data.error)
+        setLoading(false)
+        return
+      }
+      if (mode === "signin") {
+        window.location.href = "/dashboard"
+      } else {
+        setDone(true)
+        setLoading(false)
+      }
+    } catch {
+      setError("Something went wrong. Please try again.")
+      setLoading(false)
+    }
   }
 
   return (
@@ -29,7 +52,7 @@ function AuthDialog({ mode, onClose }: { mode: "signin" | "signup"; onClose: () 
           </div>
           <p className="font-semibold text-foreground">{mode === "signin" ? "Welcome back!" : "Account created!"}</p>
           <p className="text-sm text-muted-foreground">
-            {mode === "signup" ? "Thank you for joining AuraBridge. Full authentication coming soon — we'll email you when it's ready." : "Full auth is coming soon. Thank you for your interest in AuraBridge!"}
+            {mode === "signup" ? "Account created! Please check your email to confirm your account, then sign in." : "Redirecting to your dashboard..."}
           </p>
           <Button className="w-full" onClick={onClose}>Got it</Button>
         </div>
@@ -64,6 +87,7 @@ function AuthDialog({ mode, onClose }: { mode: "signin" | "signup"; onClose: () 
               <input required type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="••••••••" className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
           </div>
+          {error && <p className="text-xs text-red-600 bg-red-50 rounded p-2">{error}</p>}
           <Button type="submit" disabled={loading} className="w-full gap-2 mt-2">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
             {mode === "signin" ? "Sign In" : "Create Account"}
