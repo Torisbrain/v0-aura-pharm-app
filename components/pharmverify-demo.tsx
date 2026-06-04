@@ -272,14 +272,9 @@ export function PharmVerifyDemo() {
                           )}
                           <div className="mt-2 flex flex-col gap-1">
                             {result.smpc && (
-                              <a href={result.smpc} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
-                                View Product Monograph (SMPC)
-                              </a>
+                              <a href={result.smpc} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">View Product Monograph (SMPC)</a>
                             )}
-                            
-                              <a href={`https://greenbook.nafdac.gov.ng/search?q=${encodeURIComponent(result.name)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-green-600 hover:underline">
-                                View on NAFDAC Greenbook
-                              </a>
+                            <a href={`https://greenbook.nafdac.gov.ng/search?q=${encodeURIComponent(result.name)}`} target="_blank" rel="noopener noreferrer" className="text-xs text-green-600 hover:underline">View on NAFDAC Greenbook</a>
                           </div>
                         </div>
                       )}
@@ -288,21 +283,13 @@ export function PharmVerifyDemo() {
                           <p className="rounded-lg bg-yellow-50 p-3 text-xs text-yellow-700">
                             This product was not found in the NAFDAC database. It may be unregistered or counterfeit. Do not use without consulting a pharmacist.
                           </p>
-                          
-                            <a href={`https://greenbook.nafdac.gov.ng/search?q=${encodeURIComponent(result.name)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700">Search NAFDAC Greenbook</a>
-                          
-                            href="https://greenbook.nafdac.gov.ng/report"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 w-full rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700"
-                          >
-                            Report Suspicious Product
-                          </a>
+                          <a href={`https://greenbook.nafdac.gov.ng/search?q=${encodeURIComponent(result.name)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700">Search NAFDAC Greenbook</a>
+                          <a href="https://greenbook.nafdac.gov.ng/report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700">Report Suspicious Product</a>
                         </div>
                       )}
                       {result.status === "suspicious" && (
                         <p className="rounded-lg bg-red-50 p-3 text-xs text-red-700">
-                          ⚠️ This product has been flagged as suspicious. Do not purchase or consume it.
+                          This product has been flagged as suspicious. Do not purchase or consume it.
                         </p>
                       )}
                       <button onClick={reset} className="w-full rounded-md border border-border py-1.5 text-xs text-muted-foreground hover:bg-muted">
