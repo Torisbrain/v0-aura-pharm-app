@@ -277,13 +277,9 @@ export function PharmVerifyDemo() {
                               </a>
                             )}
                             
-                              href={`https://greenbook.nafdac.gov.ng/search?q=${encodeURIComponent(result.name)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-xs text-green-600 hover:underline"
-                            >
-                              View on NAFDAC Greenbook
-                            </a>
+                              <a href={`https://greenbook.nafdac.gov.ng/search?q=${encodeURIComponent(result.name)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-green-600 hover:underline">
+                                View on NAFDAC Greenbook
+                              </a>
                           </div>
                         </div>
                       )}
