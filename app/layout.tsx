@@ -9,14 +9,12 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   manifest: '/manifest.json',
-  themeColor: '#16a34a',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'AuraBridge',
   },
   manifest: '/manifest.json',
-  themeColor: '#16a34a',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -42,6 +40,10 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-icon.png',
   },
+}
+
+export const viewport = {
+  themeColor: '#16a34a',
 }
 
 export default function RootLayout({
