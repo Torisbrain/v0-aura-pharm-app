@@ -289,13 +289,7 @@ export function PharmVerifyDemo() {
                             This product was not found in the NAFDAC database. It may be unregistered or counterfeit. Do not use without consulting a pharmacist.
                           </p>
                           
-                            href={`https://greenbook.nafdac.gov.ng/search?q=${encodeURIComponent(result.name)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 w-full rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700"
-                          >
-                            Search NAFDAC Greenbook
-                          </a>
+                            <a href={`https://greenbook.nafdac.gov.ng/search?q=${encodeURIComponent(result.name)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700">Search NAFDAC Greenbook</a>
                           
                             href="https://greenbook.nafdac.gov.ng/report"
                             target="_blank"
