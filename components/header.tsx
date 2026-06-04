@@ -108,6 +108,12 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [authMode, setAuthMode] = useState<"signin" | "signup" | null>(null)
 
+  useEffect(() => {
+    const handler = (e: any) => setAuthMode(e.detail)
+    document.addEventListener("open-auth", handler)
+    return () => document.removeEventListener("open-auth", handler)
+  }, [])
+
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
