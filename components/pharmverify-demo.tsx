@@ -273,7 +273,7 @@ export function PharmVerifyDemo() {
                           <div className="mt-2 flex flex-col gap-1">
                             {result.smpc && (
                               <a href={result.smpc} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
-                                📄 View Product Monograph (SMPC)
+                                View Product Monograph (SMPC)
                               </a>
                             )}
                             
@@ -282,7 +282,7 @@ export function PharmVerifyDemo() {
                               rel="noopener noreferrer"
                               className="flex items-center gap-1 text-xs text-green-600 hover:underline"
                             >
-                              🔗 View on NAFDAC Greenbook
+                              View on NAFDAC Greenbook
                             </a>
                           </div>
                         </div>
@@ -298,7 +298,7 @@ export function PharmVerifyDemo() {
                             rel="noopener noreferrer"
                             className="flex items-center justify-center gap-2 w-full rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700"
                           >
-                            🔍 Search NAFDAC Greenbook
+                            Search NAFDAC Greenbook
                           </a>
                           
                             href="https://greenbook.nafdac.gov.ng/report"
@@ -306,7 +306,7 @@ export function PharmVerifyDemo() {
                             rel="noopener noreferrer"
                             className="flex items-center justify-center gap-2 w-full rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700"
                           >
-                            ⚠️ Report Suspicious Product
+                            Report Suspicious Product
                           </a>
                         </div>
                       )}
