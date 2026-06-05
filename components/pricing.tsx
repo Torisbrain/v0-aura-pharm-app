@@ -1,123 +1,166 @@
+"use client"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Check } from "lucide-react"
+import { CheckCircle, X, Loader2, Zap, Building2, Globe } from "lucide-react"
 
 const plans = [
   {
+    id: "starter",
     name: "Starter",
-    price: "12,000",
-    description: "Perfect for small pharmacies getting started with AI tools",
-    features: [
-      "Inventory AI (up to 500 SKUs)",
-      "Basic drug interaction checker",
-      "SMS adherence reminders (100/month)",
-      "Email support",
-      "PharmVerify (50 scans/month)",
-    ],
+    price: 5000,
+    priceDisplay: "₦5,000",
+    description: "Perfect for small independent pharmacies",
+    color: "from-blue-50 to-blue-100/50",
+    border: "border-blue-200",
+    btn: "border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white",
+    icon: Zap,
+    iconBg: "bg-blue-100 text-blue-600",
+    features: ["PharmVerify unlimited", "Drug Interaction Checker", "50 drug inventory", "AuraBot AI", "20 patients", "Email support"],
+    missing: ["Advanced Analytics", "Priority Support", "Multi-branch"],
     popular: false,
   },
   {
+    id: "professional",
     name: "Professional",
-    price: "20,000",
-    description: "For growing pharmacies that need more power and features",
-    features: [
-      "Inventory AI (unlimited SKUs)",
-      "Advanced drug interaction checker",
-      "SMS + USSD reminders (500/month)",
-      "Priority support",
-      "PharmVerify (200 scans/month)",
-      "Multi-location support",
-      "Analytics dashboard",
-    ],
+    price: 15000,
+    priceDisplay: "₦15,000",
+    description: "For growing pharmacies that need more",
+    color: "from-green-600 to-green-700",
+    border: "border-green-500",
+    btn: "bg-white text-green-700 hover:bg-green-50 font-bold",
+    icon: Building2,
+    iconBg: "bg-white/20 text-white",
+    features: ["Everything in Starter", "Unlimited inventory", "Unlimited patients", "SMS reminders", "Consultation booking", "Analytics dashboard", "Priority WhatsApp support", "3 staff accounts"],
+    missing: ["Multi-branch"],
     popular: true,
   },
   {
+    id: "enterprise",
     name: "Enterprise",
-    price: "28,000",
-    description: "For pharmacy chains and large operations",
-    features: [
-      "Everything in Professional",
-      "Unlimited SMS/USSD reminders",
-      "PharmVerify (unlimited scans)",
-      "Dedicated account manager",
-      "API access",
-      "Custom integrations",
-      "On-site training",
-    ],
+    price: 45000,
+    priceDisplay: "₦45,000",
+    description: "For pharmacy chains and healthcare groups",
+    color: "from-purple-50 to-purple-100/50",
+    border: "border-purple-200",
+    btn: "border-2 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white",
+    icon: Globe,
+    iconBg: "bg-purple-100 text-purple-600",
+    features: ["Everything in Professional", "Multi-branch management", "Unlimited staff", "Custom integrations", "Dedicated account manager", "SLA guarantee", "API access", "Custom reports"],
+    missing: [],
     popular: false,
   },
 ]
 
 export function Pricing() {
+  const [loading, setLoading] = useState<string | null>(null)
+  const [email, setEmail] = useState("")
+  const [showModal, setShowModal] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  const pay = (planId: string) => setShowModal(planId)
+
+  const doPayment = async (planId: string) => {
+    if (!email.trim()) return
+    const plan = plans.find(p => p.id === planId)!
+    setLoading(planId)
+    setShowModal(null)
+
+    const loadPaystack = () => new Promise<void>(resolve => {
+      if ((window as any).PaystackPop) return resolve()
+      const s = document.createElement("script")
+      s.src = "https://js.paystack.co/v1/inline.js"
+      s.onload = () => resolve()
+      document.head.appendChild(s)
+    })
+
+    await loadPaystack()
+
+    const handler = (window as any).PaystackPop.setup({
+      key: "pk_test_0e46245f77b55a611e54114577e72ce540945e26",
+      email,
+      amount: plan.price * 100,
+      currency: "NGN",
+      ref: `AURA-${Date.now()}`,
+      callback: async (res: any) => {
+        await fetch("/api/payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, plan: planId, amount: plan.price, reference: res.reference }),
+        })
+        setSuccess(planId)
+        setLoading(null)
+      },
+      onClose: () => setLoading(null),
+    })
+    handler.openIframe()
+  }
+
   return (
-    <section id="pricing" className="bg-background px-4 py-20">
+    <section id="pricing" className="bg-muted/30 px-4 py-20">
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-background p-6 shadow-2xl">
+            <h3 className="mb-1 text-lg font-bold">Enter your email</h3>
+            <p className="mb-4 text-sm text-muted-foreground">Your receipt will be sent here.</p>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@pharmacy.com" className="mb-4 w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" autoFocus onKeyDown={e => e.key === "Enter" && doPayment(showModal)} />
+            <Button className="w-full bg-green-600 hover:bg-green-700 mb-2" onClick={() => doPayment(showModal)} disabled={!email.trim()}>Continue to Payment →</Button>
+            <button onClick={() => setShowModal(null)} className="w-full text-sm text-muted-foreground hover:text-foreground">Cancel</button>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto">
-        <div className="mx-auto mb-16 max-w-2xl text-center">
-          <h2 className="mb-4 text-balance text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-            Simple, Transparent Pricing
-          </h2>
-          <p className="text-pretty text-lg text-muted-foreground">
-            Choose the plan that fits your pharmacy. All plans include a 14-day free trial.
-          </p>
+        <div className="mb-12 text-center">
+          <span className="mb-4 inline-block rounded-full bg-green-100 px-4 py-1 text-sm font-medium text-green-700">Simple Pricing</span>
+          <h2 className="mb-4 text-3xl font-bold md:text-4xl">Choose Your Plan</h2>
+          <p className="text-lg text-muted-foreground">14-day free trial on all plans. No credit card required.</p>
         </div>
 
-        <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-3">
-          {plans.map((plan) => (
-            <Card 
-              key={plan.name} 
-              className={`relative flex flex-col ${
-                plan.popular 
-                  ? "border-2 border-primary shadow-lg" 
-                  : "border-border/50"
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-                  Most Popular
+        <div className="grid gap-8 md:grid-cols-3 mx-auto max-w-5xl items-center">
+          {plans.map(plan => (
+            <div key={plan.id} className={`relative rounded-2xl border-2 ${plan.border} overflow-hidden ${plan.popular ? "scale-105 shadow-2xl" : "shadow-md"} transition-transform hover:scale-[1.02]`}>
+              {plan.popular && <div className="absolute top-0 left-0 right-0 bg-green-600 py-1.5 text-center text-xs font-bold text-white tracking-wider">MOST POPULAR</div>}
+              <div className={`bg-gradient-to-br ${plan.color} p-6 ${plan.popular ? "pt-10" : ""}`}>
+                <div className={`mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl ${plan.iconBg}`}>
+                  <plan.icon className="h-5 w-5" />
                 </div>
-              )}
-              <CardHeader className="text-center">
-                <CardTitle className="text-xl">{plan.name}</CardTitle>
-                <CardDescription className="min-h-[48px]">
-                  {plan.description}
-                </CardDescription>
-                <div className="pt-4">
-                  <span className="text-4xl font-bold text-foreground">
-                    ₦{plan.price}
-                  </span>
-                  <span className="text-muted-foreground">/month</span>
+                <h3 className={`text-xl font-bold ${plan.popular ? "text-white" : "text-foreground"}`}>{plan.name}</h3>
+                <p className={`text-sm mb-4 ${plan.popular ? "text-green-100" : "text-muted-foreground"}`}>{plan.description}</p>
+                <div className={`text-4xl font-extrabold ${plan.popular ? "text-white" : "text-foreground"}`}>
+                  {plan.priceDisplay}<span className={`text-base font-normal ${plan.popular ? "text-green-100" : "text-muted-foreground"}`}>/mo</span>
                 </div>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <ul className="space-y-3">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3">
-                      <Check className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
-                      <span className="text-sm text-muted-foreground">{feature}</span>
-                    </li>
+              </div>
+              <div className="bg-background p-6 space-y-5">
+                <div className="space-y-2.5">
+                  {plan.features.map(f => (
+                    <div key={f} className="flex items-center gap-2.5">
+                      <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                      <span className="text-sm">{f}</span>
+                    </div>
                   ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  className="w-full" 
-                  variant={plan.popular ? "default" : "outline"}
-                >
-                  Start Free Trial
-                </Button>
-              </CardFooter>
-            </Card>
+                  {plan.missing.map(f => (
+                    <div key={f} className="flex items-center gap-2.5 opacity-35">
+                      <X className="h-4 w-4 shrink-0" />
+                      <span className="text-sm line-through">{f}</span>
+                    </div>
+                  ))}
+                </div>
+                {success === plan.id ? (
+                  <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-center">
+                    <CheckCircle className="mx-auto mb-1 h-7 w-7 text-green-600" />
+                    <p className="font-semibold text-green-700">Payment Successful!</p>
+                    <p className="text-xs text-green-600 mt-1">Welcome to AuraBridge {plan.name} 🎉</p>
+                  </div>
+                ) : (
+                  <Button className={`w-full h-11 text-sm font-semibold rounded-xl ${plan.btn}`} variant="outline" onClick={() => pay(plan.id)} disabled={loading === plan.id}>
+                    {loading === plan.id ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing...</> : "Get Started →"}
+                  </Button>
+                )}
+                <p className="text-center text-xs text-muted-foreground">14-day free trial • Cancel anytime</p>
+              </div>
+            </div>
           ))}
-        </div>
-
-        <div className="mx-auto mt-12 max-w-xl text-center">
-          <p className="text-muted-foreground">
-            Need a custom solution?{" "}
-            <a href="#contact" className="font-medium text-primary underline-offset-4 hover:underline">
-              Contact us
-            </a>{" "}
-            for enterprise pricing tailored to your pharmacy chain.
-          </p>
         </div>
       </div>
     </section>
