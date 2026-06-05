@@ -1,160 +1,329 @@
 "use client"
-import { useState, useRef, useEffect } from "react"
+
+import { useState } from "react"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Send, Loader2, Bot, User, Stethoscope, Pill, Heart } from "lucide-react"
-
-interface Message { role: "user" | "assistant"; content: string }
+import { AuraBot } from "@/components/aura-bot"
+import { 
+  Stethoscope, Pill, Heart, CheckCircle, 
+  Loader2, Phone, Clock, AlertTriangle,
+  MessageCircle, Calendar
+} from "lucide-react"
 
 const specialists = [
-  { id: "pharmacist", label: "Pharmacist", icon: Pill, color: "bg-green-100 text-green-700", desc: "Drug questions, interactions, dosages" },
-  { id: "doctor", label: "General Doctor", icon: Stethoscope, color: "bg-blue-100 text-blue-700", desc: "Symptoms, diagnosis guidance, referrals" },
-  { id: "nurse", label: "Nurse", icon: Heart, color: "bg-pink-100 text-pink-700", desc: "Patient care, wound care, vitals" },
+  { 
+    id: "pharmacist", 
+    label: "Pharmacist", 
+    icon: Pill, 
+    color: "bg-green-100 text-green-700",
+    border: "border-green-200",
+    desc: "Drug questions, interactions, dosages, NAFDAC",
+    wait: "~30 mins",
+    available: true
+  },
+  { 
+    id: "doctor", 
+    label: "General Doctor", 
+    icon: Stethoscope, 
+    color: "bg-blue-100 text-blue-700",
+    border: "border-blue-200",
+    desc: "Symptoms, diagnosis guidance, prescriptions",
+    wait: "~1 hour",
+    available: true
+  },
+  { 
+    id: "nurse", 
+    label: "Nurse", 
+    icon: Heart, 
+    color: "bg-pink-100 text-pink-700",
+    border: "border-pink-200",
+    desc: "Patient care, wound care, health advice",
+    wait: "~20 mins",
+    available: true
+  },
 ]
 
-const systemPrompts: Record<string, string> = {
-  pharmacist: "You are an expert clinical pharmacist in Nigeria with 15+ years experience. Help with drug questions, interactions, dosages, side effects, NAFDAC regulations, and medication counseling. Be professional, accurate, and always recommend in-person consultation for serious cases.",
-  doctor: "You are an experienced general practitioner doctor in Nigeria. Help with symptom assessment, general health guidance, when to seek emergency care, and referrals. Always clarify you are an AI assistant and serious cases need in-person evaluation.",
-  nurse: "You are a registered nurse in Nigeria with expertise in patient care, wound management, vital signs interpretation, and health education. Be caring, practical, and clear. Always recommend professional medical care when needed.",
-}
-
 export default function ConsultPage() {
-  const [specialist, setSpecialist] = useState<string | null>(null)
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState("")
+  const [step, setStep] = useState<"select" | "book" | "confirm">("select")
+  const [selected, setSelected] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const [error, setError] = useState("")
+  const [bookingId, setBookingId] = useState("")
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    symptoms: "",
+    preferred_time: "",
+    urgency: "normal"
+  })
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }) }, [messages, loading])
-
-  const startConsult = (id: string) => {
-    setSpecialist(id)
-    const s = specialists.find(s => s.id === id)!
-    setMessages([{ role: "assistant", content: `Hello! I am your AI ${s.label}. I am here to help with ${s.desc.toLowerCase()}. How can I assist you today?
-
-Please note: This is an AI assistant and should not replace professional medical advice for serious conditions.` }])
+  const selectSpecialist = (id: string) => {
+    setSelected(id)
+    setStep("book")
   }
 
-  const send = async () => {
-    if (!input.trim() || loading || !specialist) return
-    const newMessages: Message[] = [...messages, { role: "user", content: input }]
-    setMessages(newMessages)
-    setInput("")
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
     setLoading(true)
+    setError("")
+
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch("/api/consult", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [
-            { role: "user", content: `[SYSTEM: ${systemPrompts[specialist]}]
-
-${input}` },
-            ...newMessages.slice(1)
-          ]
+          ...form,
+          specialist_type: selected
         })
       })
       const data = await res.json()
-      setMessages([...newMessages, { role: "assistant", content: data.message || "Sorry, I could not respond. Please try again." }])
+      if (data.error) {
+        setError(data.error)
+        setLoading(false)
+        return
+      }
+      setBookingId(data.id)
+      setStep("confirm")
     } catch {
-      setMessages([...newMessages, { role: "assistant", content: "Connection error. Please try again." }])
+      setError("Something went wrong. Please try again.")
     } finally {
       setLoading(false)
     }
   }
 
-  if (!specialist) {
+  const currentSpecialist = specialists.find(s => s.id === selected)
+
+  if (step === "confirm") {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto max-w-2xl px-4 py-16">
-          <div className="mb-10 text-center">
-            <h1 className="mb-4 text-3xl font-bold text-foreground">Consult a Specialist</h1>
-            <p className="text-lg text-muted-foreground">Get instant AI-powered medical guidance from our virtual healthcare team. Available 24/7.</p>
-          </div>
-          <div className="space-y-4">
-            {specialists.map(s => (
-              <Card key={s.id} className="cursor-pointer hover:shadow-md transition-shadow border-border/50" onClick={() => startConsult(s.id)}>
-                <CardContent className="p-6 flex items-center gap-4">
-                  <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ${s.color}`}>
-                    <s.icon className="h-7 w-7" />
+        <main className="container mx-auto max-w-lg px-4 py-16">
+          <div className="text-center">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle className="h-10 w-10 text-green-600" />
+            </div>
+            <h1 className="mb-4 text-2xl font-bold text-foreground">Consultation Booked!</h1>
+            <p className="mb-2 text-muted-foreground">Your booking reference:</p>
+            <p className="mb-6 font-mono text-sm font-bold text-green-600 bg-green-50 rounded-lg px-4 py-2 inline-block">
+              #{bookingId.slice(0, 8).toUpperCase()}
+            </p>
+
+            <Card className="mb-6 text-left border-green-200">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-start gap-3">
+                  <MessageCircle className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-sm">WhatsApp Contact</p>
+                    <p className="text-sm text-muted-foreground">A {currentSpecialist?.label} will contact you on <strong>{form.phone}</strong> via WhatsApp within {currentSpecialist?.wait}.</p>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-lg">{s.label}</p>
-                    <p className="text-sm text-muted-foreground">{s.desc}</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Clock className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-sm">Response Time</p>
+                    <p className="text-sm text-muted-foreground">Expected response: {currentSpecialist?.wait}. {form.preferred_time && `You requested: ${form.preferred_time}`}</p>
                   </div>
-                  <span className="text-sm text-green-600 font-medium">Available →</span>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+                {form.urgency === "urgent" && (
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-sm text-red-600">Urgent Request</p>
+                      <p className="text-sm text-muted-foreground">Your case has been flagged as urgent. For life-threatening emergencies, call <strong>112</strong> immediately.</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <div className="space-y-3">
+              <Button className="w-full gap-2 bg-green-600 hover:bg-green-700" onClick={() => window.open(`https://wa.me/2348000000000?text=Hi, my booking reference is %23${bookingId.slice(0,8).toUpperCase()}. I need to consult a ${currentSpecialist?.label}.`, '_blank')}>
+                <MessageCircle className="h-4 w-4" />
+                Open WhatsApp
+              </Button>
+              <Button variant="outline" className="w-full" onClick={() => { setStep("select"); setSelected(null); setForm({ name: "", phone: "", email: "", symptoms: "", preferred_time: "", urgency: "normal" }) }}>
+                Book Another Consultation
+              </Button>
+            </div>
+
+            <p className="mt-6 text-xs text-muted-foreground">
+              For medical emergencies, call <strong>112</strong> or go to your nearest hospital immediately.
+            </p>
           </div>
-          <p className="mt-8 text-center text-xs text-muted-foreground">
-            AI-powered consultations. For emergencies, call 112 or visit your nearest hospital.
-          </p>
         </main>
+        <AuraBot />
       </div>
     )
   }
 
-  const currentSpecialist = specialists.find(s => s.id === specialist)!
+  if (step === "book" && currentSpecialist) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto max-w-lg px-4 py-12">
+          <button onClick={() => setStep("select")} className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            ← Back to specialists
+          </button>
+
+          <div className={`mb-6 flex items-center gap-3 rounded-xl border-2 ${currentSpecialist.border} p-4`}>
+            <div className={`flex h-12 w-12 items-center justify-center rounded-full ${currentSpecialist.color}`}>
+              <currentSpecialist.icon className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="font-semibold">{currentSpecialist.label}</p>
+              <p className="text-xs text-muted-foreground">{currentSpecialist.desc}</p>
+              <p className="text-xs text-green-600 font-medium">Estimated response: {currentSpecialist.wait}</p>
+            </div>
+          </div>
+
+          <form onSubmit={submit} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Full Name *</label>
+              <input
+                required
+                value={form.name}
+                onChange={e => setForm(p => ({...p, name: e.target.value}))}
+                placeholder="Your full name"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">WhatsApp Number *</label>
+              <input
+                required
+                value={form.phone}
+                onChange={e => setForm(p => ({...p, phone: e.target.value}))}
+                placeholder="+234 800 000 0000"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">The specialist will contact you here</p>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">Email (optional)</label>
+              <input
+                value={form.email}
+                onChange={e => setForm(p => ({...p, email: e.target.value}))}
+                placeholder="your@email.com"
+                type="email"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">Describe your symptoms or question *</label>
+              <textarea
+                required
+                value={form.symptoms}
+                onChange={e => setForm(p => ({...p, symptoms: e.target.value}))}
+                placeholder="Describe what you are experiencing or what you need help with..."
+                rows={4}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">Preferred consultation time</label>
+              <select
+                value={form.preferred_time}
+                onChange={e => setForm(p => ({...p, preferred_time: e.target.value}))}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="">As soon as possible</option>
+                <option value="Morning (8am - 12pm)">Morning (8am - 12pm)</option>
+                <option value="Afternoon (12pm - 4pm)">Afternoon (12pm - 4pm)</option>
+                <option value="Evening (4pm - 8pm)">Evening (4pm - 8pm)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">Urgency</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setForm(p => ({...p, urgency: "normal"}))}
+                  className={`rounded-lg border-2 px-3 py-2 text-sm font-medium transition-colors ${form.urgency === "normal" ? "border-green-500 bg-green-50 text-green-700" : "border-border text-muted-foreground hover:bg-muted"}`}
+                >
+                  Normal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm(p => ({...p, urgency: "urgent"}))}
+                  className={`rounded-lg border-2 px-3 py-2 text-sm font-medium transition-colors ${form.urgency === "urgent" ? "border-red-500 bg-red-50 text-red-700" : "border-border text-muted-foreground hover:bg-muted"}`}
+                >
+                  Urgent
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
+            )}
+
+            <Button type="submit" disabled={loading} className="w-full gap-2 bg-green-600 hover:bg-green-700">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Calendar className="h-4 w-4" />}
+              Book Consultation
+            </Button>
+
+            <p className="text-center text-xs text-muted-foreground">
+              For emergencies, call <strong>112</strong> immediately
+            </p>
+          </form>
+        </main>
+        <AuraBot />
+      </div>
+    )
+  }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="min-h-screen bg-background">
       <Header />
-      <div className={`border-b px-4 py-3 flex items-center gap-3 ${currentSpecialist.color.split(" ")[0]}/20`}>
-        <div className={`flex h-9 w-9 items-center justify-center rounded-full ${currentSpecialist.color}`}>
-          <currentSpecialist.icon className="h-5 w-5" />
-        </div>
-        <div>
-          <p className="font-semibold text-sm">AI {currentSpecialist.label}</p>
-          <p className="text-xs text-green-600">Online • Responding instantly</p>
-        </div>
-        <button onClick={() => { setSpecialist(null); setMessages([]) }} className="ml-auto text-xs text-muted-foreground hover:text-foreground">Change specialist</button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-2xl mx-auto w-full">
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${msg.role === "user" ? "bg-green-600" : currentSpecialist.color}`}>
-              {msg.role === "user" ? <User className="h-4 w-4 text-white" /> : <currentSpecialist.icon className="h-4 w-4" />}
-            </div>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${msg.role === "user" ? "bg-green-600 text-white rounded-tr-sm" : "bg-muted text-foreground rounded-tl-sm"}`}>
-              {msg.content}
-            </div>
+      <main className="container mx-auto max-w-2xl px-4 py-16">
+        <div className="mb-10 text-center">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
+            <Phone className="h-4 w-4" /> Real Healthcare Professionals
           </div>
-        ))}
-        {loading && (
-          <div className="flex gap-3">
-            <div className={`flex h-8 w-8 items-center justify-center rounded-full ${currentSpecialist.color}`}>
-              <currentSpecialist.icon className="h-4 w-4" />
-            </div>
-            <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-muted px-4 py-3">
-              <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:0ms]" />
-              <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:150ms]" />
-              <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:300ms]" />
-            </div>
-          </div>
-        )}
-        <div ref={bottomRef} />
-      </div>
-
-      <div className="border-t p-4 max-w-2xl mx-auto w-full">
-        <div className="flex gap-2">
-          <input
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
-            placeholder={`Ask the ${currentSpecialist.label}...`}
-            className="flex-1 rounded-full border border-input bg-muted px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            disabled={loading}
-          />
-          <button onClick={send} disabled={loading || !input.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-600 text-white hover:bg-green-700 disabled:opacity-50">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          </button>
+          <h1 className="mb-4 text-3xl font-bold text-foreground md:text-4xl">Consult a Specialist</h1>
+          <p className="text-lg text-muted-foreground">Book a real consultation with a licensed healthcare professional. They will contact you via WhatsApp.</p>
         </div>
-        <p className="mt-2 text-center text-xs text-muted-foreground">AI assistant only. Not a substitute for professional medical care.</p>
-      </div>
+
+        <div className="space-y-4 mb-8">
+          {specialists.map(s => (
+            <Card
+              key={s.id}
+              className={`cursor-pointer border-2 hover:shadow-md transition-all hover:-translate-y-0.5 ${s.border}`}
+              onClick={() => selectSpecialist(s.id)}
+            >
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ${s.color}`}>
+                  <s.icon className="h-7 w-7" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-lg">{s.label}</p>
+                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Available</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{s.desc}</p>
+                  <p className="mt-1 text-xs text-green-600 font-medium flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> Response time: {s.wait}
+                  </p>
+                </div>
+                <span className="text-green-600 font-medium text-sm">Book →</span>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="rounded-xl bg-muted/50 border border-border p-6 text-center">
+          <AlertTriangle className="mx-auto mb-2 h-6 w-6 text-yellow-600" />
+          <p className="text-sm font-medium">Medical Emergency?</p>
+          <p className="text-sm text-muted-foreground mt-1">Do not use this service for emergencies. Call <strong>112</strong> or go to your nearest hospital immediately.</p>
+        </div>
+      </main>
+      <AuraBot />
     </div>
   )
 }
