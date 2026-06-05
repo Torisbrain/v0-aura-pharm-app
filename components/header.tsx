@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Menu, X, Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 function AuthDialog({ mode, onClose }: { mode: "signin" | "signup"; onClose: () => void }) {
   const [loading, setLoading] = useState(false)
