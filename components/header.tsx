@@ -126,16 +126,17 @@ export function Header() {
           </Link>
 
           <nav className="hidden items-center gap-8 md:flex">
-            <Link href="#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Features</Link>
-            <Link href="#pharmverify" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">PharmVerify</Link>
-            <Link href="#pricing" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Pricing</Link>
-            <Link href="#nearby" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Nearby</Link>
-            <Link href="#contact" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Contact</Link>
+            <Link href="/#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Features</Link>
+            <Link href="/pharmverify" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">PharmVerify</Link>
+            <Link href="/interactions" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Interactions</Link>
+            <Link href="/consult" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Consult</Link>
+            <Link href="/dashboard" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
           </nav>
 
           <div className="hidden items-center gap-4 md:flex">
             <Button variant="ghost" size="sm" onClick={() => setAuthMode("signin")}>Sign In</Button>
             <Button size="sm" onClick={() => setAuthMode("signup")}>Get Started</Button>
+            <Link href="/account"><Button variant="ghost" size="sm">Account</Button></Link>
           </div>
 
           <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
