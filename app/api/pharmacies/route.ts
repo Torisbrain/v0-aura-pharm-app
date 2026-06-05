@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const lon = searchParams.get("lon")
   if (!lat || !lon) return NextResponse.json({ error: "Missing coordinates" }, { status: 400 })
 
-  const query = `[out:json][timeout:25];(node["amenity"="pharmacy"](around:3000,${lat},${lon});way["amenity"="pharmacy"](around:3000,${lat},${lon}););out body;`
+  const query = `[out:json][timeout:25];(node["amenity"="pharmacy"](around:10000,${lat},${lon});way["amenity"="pharmacy"](around:10000,${lat},${lon}););out body;`
   
   try {
     const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`)

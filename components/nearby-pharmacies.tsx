@@ -140,7 +140,7 @@ export function NearbyPharmacies() {
               <div ref={mapContainerRef} className="h-[420px] w-full rounded-2xl border border-border shadow-md overflow-hidden" />
             </div>
             <div className="order-1 lg:order-2 space-y-3 max-h-[420px] overflow-y-auto pr-1">
-              <p className="text-sm font-medium text-muted-foreground">{pharmacies.length} pharmacies found within 3km</p>
+              <p className="text-sm font-medium text-muted-foreground">{pharmacies.length} pharmacies found within 10km</p>
               {pharmacies.map((p, i) => (
                 <Card key={p.id} className="border-border/50 hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
@@ -167,7 +167,7 @@ export function NearbyPharmacies() {
         )}
         {pharmacies.length === 0 && userLocation && !loading && !error && (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">No pharmacies found within 3km.</p>
+            <p className="text-muted-foreground">No pharmacies found within 10km.</p>
             <Button variant="outline" size="sm" onClick={findPharmacies} className="mt-3">Try Again</Button>
           </div>
         )}
