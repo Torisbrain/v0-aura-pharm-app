@@ -35,7 +35,6 @@ async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
     strength: data.activeIngredients,
     status: data.status === "verified" ? "verified" : data.status === "suspicious" ? "suspicious" : "not_found",
     smpc: data.smpc,
-    smpc: data.smpc,
   }
 }
 
