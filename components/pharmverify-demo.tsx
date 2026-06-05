@@ -15,7 +15,6 @@ interface NAFDACResult {
   strength?: string
   status: "verified" | "not_found" | "suspicious"
   smpc?: string
-  smpc?: string
 }
 
 async function lookupNAFDAC(query: string): Promise<NAFDACResult> {
