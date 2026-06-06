@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Shield, CheckCircle, Camera, QrCode, Search, Loader2, XCircle, AlertTriangle } from "lucide-react"
 
 let Html5Qrcode: any = null
+let Html5QrcodeSupportedFormats: any = null
 
 interface NAFDACResult {
   name: string
@@ -50,6 +51,7 @@ export function PharmVerifyDemo() {
   useEffect(() => {
     import("html5-qrcode").then(mod => {
       Html5Qrcode = mod.Html5Qrcode
+      Html5QrcodeSupportedFormats = mod.Html5QrcodeSupportedFormats
     })
   }, [])
 
@@ -57,18 +59,32 @@ export function PharmVerifyDemo() {
     setScanError("")
     setResult(null)
     setMode("scanning")
-    await new Promise(r => setTimeout(r, 100))
+    await new Promise(r => setTimeout(r, 150))
     if (!Html5Qrcode) {
-      setScanError("Scanner library not loaded yet. Try again in a moment.")
+      setScanError("Scanner not loaded yet. Try again.")
       setMode("idle")
       return
     }
     try {
-      const scanner = new Html5Qrcode(scannerDivId)
+      // All barcode formats — EAN-13, EAN-8, Code128, QR, DataMatrix, etc.
+      const formats = Html5QrcodeSupportedFormats
+        ? Object.values(Html5QrcodeSupportedFormats).filter((v): v is number => typeof v === "number")
+        : undefined
+
+      const scanner = new Html5Qrcode(scannerDivId, { formatsToSupport: formats, verbose: false })
       scannerRef.current = scanner
+
       await scanner.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 220, height: 220 } },
+        {
+          fps: 30,                          // 3x faster than before
+          qrbox: { width: 320, height: 160 }, // wide rectangle — better for barcodes
+          aspectRatio: 1.7,                 // landscape crop fits barcodes
+          disableFlip: false,
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true, // native BarcodeDetector API (much faster on Android)
+          },
+        },
         async (decodedText: string) => {
           await stopScanner()
           setSearchQuery(decodedText)
@@ -196,10 +212,17 @@ export function PharmVerifyDemo() {
               </CardHeader>
 
               <CardContent className="p-6">
-                <div className="mb-4 overflow-hidden rounded-lg border-2 border-dashed border-border bg-muted/50">
+                {/* Scanner viewport */}
+                <div className="mb-4 overflow-hidden rounded-lg border-2 border-dashed border-border bg-black">
                   {mode === "scanning" ? (
                     <div className="relative">
                       <div id={scannerDivId} className="w-full" />
+                      {/* Scan guide overlay */}
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                        <div className="h-16 w-64 rounded border-2 border-green-400 shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]">
+                          <div className="h-full w-full animate-pulse rounded border border-green-300/40" />
+                        </div>
+                      </div>
                       <button
                         onClick={stopScanner}
                         className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white"
@@ -207,6 +230,9 @@ export function PharmVerifyDemo() {
                       >
                         <XCircle className="h-5 w-5" />
                       </button>
+                      <p className="absolute bottom-2 left-0 right-0 text-center text-xs text-white/80">
+                        Align barcode within the green box
+                      </p>
                     </div>
                   ) : (
                     <button
@@ -265,13 +291,9 @@ export function PharmVerifyDemo() {
                           <div className="mt-1 text-xs text-muted-foreground">Reg: {result.registrationNumber}</div>
                           <div className="text-xs text-muted-foreground">Mfr: {result.manufacturer}</div>
                           <div className="text-xs text-muted-foreground">Approved: {result.approvalDate}</div>
-                          {result.strength && (
-                            <div className="text-xs text-muted-foreground">Ingredients: {result.strength}</div>
-                          )}
+                          {result.strength && <div className="text-xs text-muted-foreground">Ingredients: {result.strength}</div>}
                           <div className="mt-2 flex flex-col gap-1">
-                            {result.smpc && (
-                              <a href={result.smpc} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">View Product Monograph (SMPC)</a>
-                            )}
+                            {result.smpc && <a href={result.smpc} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">View Product Monograph (SMPC)</a>}
                             <a href={`https://greenbook.nafdac.gov.ng/search?q=${encodeURIComponent(result.name)}`} target="_blank" rel="noopener noreferrer" className="text-xs text-green-600 hover:underline">View on NAFDAC Greenbook</a>
                           </div>
                         </div>
@@ -279,7 +301,7 @@ export function PharmVerifyDemo() {
                       {result.status === "not_found" && (
                         <div className="space-y-2">
                           <p className="rounded-lg bg-yellow-50 p-3 text-xs text-yellow-700">
-                            This product was not found in the NAFDAC database. It may be unregistered or counterfeit. Do not use without consulting a pharmacist.
+                            Not found in NAFDAC database. May be unregistered or counterfeit. Consult a pharmacist.
                           </p>
                           <a href={`https://greenbook.nafdac.gov.ng/search?q=${encodeURIComponent(result.name)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700">Search NAFDAC Greenbook</a>
                           <a href="https://greenbook.nafdac.gov.ng/report" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700">Report Suspicious Product</a>
