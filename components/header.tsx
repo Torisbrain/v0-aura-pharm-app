@@ -23,17 +23,8 @@ function AuthDialog({ mode, onClose }: { mode: "signin" | "signup"; onClose: () 
         body: JSON.stringify({ ...form, mode }),
       })
       const data = await res.json()
-      if (data.error) {
-        setError(data.error)
-        setLoading(false)
-        return
-      }
-      if (mode === "signin") {
-        window.location.href = "/dashboard"
-      } else {
-        setDone(true)
-        setLoading(false)
-      }
+      if (data.error) { setError(data.error); setLoading(false); return }
+      if (mode === "signin") { window.location.href = "/dashboard" } else { setDone(true); setLoading(false) }
     } catch {
       setError("Something went wrong. Please try again.")
       setLoading(false)
@@ -114,6 +105,14 @@ export function Header() {
     return () => document.removeEventListener("open-auth", handler)
   }, [])
 
+  const navLinks = [
+    { href: "/#features", label: "Features" },
+    { href: "/pharmverify", label: "PharmVerify" },
+    { href: "/interactions", label: "Interactions" },
+    { href: "/consult", label: "Consult" },
+    { href: "/dashboard", label: "Dashboard" },
+  ]
+
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -125,12 +124,11 @@ export function Header() {
             <span className="text-xl font-bold text-foreground">AuraBridge</span>
           </Link>
 
+          {/* Desktop nav */}
           <nav className="hidden items-center gap-8 md:flex">
-            <Link href="/#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Features</Link>
-            <Link href="/pharmverify" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">PharmVerify</Link>
-            <Link href="/interactions" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Interactions</Link>
-            <Link href="/consult" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Consult</Link>
-            <Link href="/dashboard" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
+            {navLinks.map(l => (
+              <Link key={l.href} href={l.href} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">{l.label}</Link>
+            ))}
           </nav>
 
           <div className="hidden items-center gap-4 md:flex">
@@ -139,21 +137,32 @@ export function Header() {
             <Link href="/account"><Button variant="ghost" size="sm">Account</Button></Link>
           </div>
 
-          <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          {/* Mobile hamburger */}
+          <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle menu">
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
 
+        {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="border-t bg-background px-4 py-4 md:hidden">
-            <nav className="flex flex-col gap-4">
-              <Link href="#features" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>Features</Link>
-              <Link href="#pharmverify" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>PharmVerify</Link>
-              <Link href="#pricing" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
-              <Link href="#contact" className="text-sm font-medium text-muted-foreground" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
-              <div className="flex flex-col gap-2 pt-4 border-t">
-                <Button variant="ghost" size="sm" onClick={() => { setAuthMode("signin"); setMobileMenuOpen(false) }}>Sign In</Button>
-                <Button size="sm" onClick={() => { setAuthMode("signup"); setMobileMenuOpen(false) }}>Get Started</Button>
+            <nav className="flex flex-col gap-1">
+              {navLinks.map(l => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="rounded-lg px-3 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {l.label}
+                </Link>
+              ))}
+              <div className="flex flex-col gap-2 pt-4 border-t mt-2">
+                <Button variant="outline" size="sm" onClick={() => { setAuthMode("signin"); setMobileMenuOpen(false) }}>Sign In</Button>
+                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => { setAuthMode("signup"); setMobileMenuOpen(false) }}>Get Started</Button>
+                <Link href="/account" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full">Account</Button>
+                </Link>
               </div>
             </nav>
           </div>
