@@ -55,3 +55,4 @@ export default function RootLayout({
     </html>
   )
 }
+// SW registration is handled via Script component below
