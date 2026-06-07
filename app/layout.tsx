@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import Script from 'next/script'
 import './globals.css'
 import { AuraBot } from '@/components/aura-bot'
+import { SponsoredBanner } from '@/components/sponsored-banner'
 import { AuthGate } from '@/components/auth-gate'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -32,7 +33,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <body className="font-sans antialiased">
         <AuthGate>
-          {children}
+          <SponsoredBanner />
+        {children}
         </AuthGate>
         {process.env.NODE_ENV === 'production' && <Analytics />}
         <AuraBot />
