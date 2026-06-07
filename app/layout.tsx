@@ -4,19 +4,16 @@ import { Analytics } from '@vercel/analytics/next'
 import Script from 'next/script'
 import './globals.css'
 import { AuraBot } from '@/components/aura-bot'
+import { AuthGate } from '@/components/auth-gate'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'AuraBridge',
-  },
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'AuraBridge' },
   title: 'AuraBridge Health - AI Pharmacy Intelligence for West Africa',
-  description: 'AI pharmacy intelligence built for Nigeria and West Africa. Inventory forecasting, drug interaction checks, adherence nudges, and counterfeit detection.',
+  description: 'AI pharmacy intelligence built for Nigeria and West Africa.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -28,27 +25,19 @@ export const metadata: Metadata = {
   },
 }
 
-export const viewport = {
-  themeColor: '#16a34a',
-}
+export const viewport = { themeColor: '#16a34a' }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        {children}
+        <AuthGate>
+          {children}
+        </AuthGate>
         {process.env.NODE_ENV === 'production' && <Analytics />}
         <AuraBot />
-        <Script
-          id="sw-registration"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').then(function(r){console.log('SW:',r.scope)}).catch(function(e){console.log('SW err:',e)})})}`,
-          }}
+        <Script id="sw-registration" strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: `if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').then(function(r){console.log('SW:',r.scope)}).catch(function(e){console.log('SW err:',e)})})}` }}
         />
       </body>
     </html>
