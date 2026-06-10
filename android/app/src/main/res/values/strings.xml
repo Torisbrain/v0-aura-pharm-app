@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AuraBridge Health</string>
+    <string name="title_activity_main">AuraBridge Health</string>
+    <string name="package_name">com.aurabridge.health</string>
+    <string name="custom_url_scheme">com.aurabridge.health</string>
+</resources>
