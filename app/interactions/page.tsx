@@ -5,6 +5,7 @@ import { AuraBot } from "@/components/aura-bot"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Search, Loader2, CheckCircle, AlertTriangle, Shield } from "lucide-react"
+import { SponsoredListing } from "@/components/sponsored-ad"
 
 export default function InteractionsPage() {
   const [drug1, setDrug1] = useState("")

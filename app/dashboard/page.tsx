@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { DashboardAd } from "@/components/sponsored-ad"
 import {
   Package, Users, AlertTriangle, Plus, Loader2, LogOut,
   Bell, TrendingDown, Shield, Zap, BarChart3, ChevronRight,
