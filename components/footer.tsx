@@ -71,11 +71,11 @@ export function Footer() {
               </div>
 
               <div className="mt-6 flex gap-4">
-                <Link href="https://www.linkedin.com/company/aurabridge-health" target="_blank" rel="noopener noreferrer" className="text-background/70 hover:text-background transition-colors">
+                <Link href="https://www.linkedin.com/in/victoria-robin-3862a3280" target="_blank" rel="noopener noreferrer" className="text-background/70 hover:text-background transition-colors">
                   <Linkedin className="h-5 w-5" />
                   <span className="sr-only">LinkedIn</span>
                 </Link>
-                <Link href="https://github.com/Torisbrain/v0-aura-pharm-app" target="_blank" rel="noopener noreferrer" className="text-background/70 hover:text-background transition-colors">
+                <Link href="https://github.com/Torisbrain" target="_blank" rel="noopener noreferrer" className="text-background/70 hover:text-background transition-colors">
                   <Github className="h-5 w-5" />
                   <span className="sr-only">GitHub</span>
                 </Link>

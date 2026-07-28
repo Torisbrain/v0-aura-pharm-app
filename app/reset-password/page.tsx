@@ -1,97 +1,119 @@
-'use client'
+"use client"
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
-import { ShieldCheck, ArrowRight, Lock, CheckCircle2 } from 'lucide-react'
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase"
+import { Button } from "@/components/ui/button"
+import { Lock, Loader2, CheckCircle, Shield } from "lucide-react"
 
 export default function ResetPasswordPage() {
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [statusMsg, setStatusMsg] = useState('')
-  const [errorMsg, setErrorMsg] = useState('')
+  const router = useRouter()
+  const supabase = createClient()
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [done, setDone] = useState(false)
+  const [ready, setReady] = useState(false)
 
-  const handleUpdatePassword = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!supabase) return
+    supabase.auth.getSession().then((result: { data: { session: unknown } }) => {
+      setReady(true)
+      if (!result.data.session) {
+        setError("This reset link is invalid or has expired. Please request a new one.")
+      }
+    })
+  }, [supabase])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErrorMsg('')
-    setStatusMsg('')
+    setError("")
 
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.")
+      return
+    }
     if (password !== confirmPassword) {
-      setErrorMsg('Passwords do not match.')
+      setError("Passwords do not match.")
+      return
+    }
+    if (!supabase) {
+      setError("Something went wrong. Please try again.")
       return
     }
 
     setLoading(true)
-    try {
-      const { error } = await supabase.auth.updateUser({ password })
-      if (error) throw error
-      setStatusMsg('Password updated successfully! You can now sign in with your new password.')
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to update password.')
-    } finally {
-      setLoading(false)
+    const { error: updateError } = await supabase.auth.updateUser({ password })
+    setLoading(false)
+
+    if (updateError) {
+      setError(updateError.message)
+      return
     }
+    setDone(true)
+    setTimeout(() => router.push("/dashboard"), 2000)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 text-slate-100 font-sans">
-      <div className="w-full max-w-md bg-slate-900 border border-emerald-500/20 rounded-2xl p-6 shadow-2xl">
-        <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center mb-3">
-            <ShieldCheck className="w-7 h-7 text-white" />
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 to-green-950 px-4">
+      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-600">
+            <Shield className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-xl font-bold">Reset Password</h1>
-          <p className="text-xs text-slate-400 mt-1">Enter your new password below.</p>
+          <h1 className="text-xl font-bold text-white">Set a new password</h1>
+          <p className="mt-1 text-sm text-green-300/70">Choose a new password for your account.</p>
         </div>
 
-        {errorMsg && (
-          <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold">
-            {errorMsg}
-          </div>
-        )}
-
-        {statusMsg ? (
-          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold text-center space-y-3">
-            <CheckCircle2 className="w-8 h-8 mx-auto" />
-            <p>{statusMsg}</p>
-            <Link href="/" className="inline-block bg-emerald-600 text-white font-bold px-4 py-2 rounded-lg text-xs">
-              Go to Login
-            </Link>
+        {done ? (
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <CheckCircle className="h-10 w-10 text-green-400" />
+            <p className="text-white font-medium">Password updated!</p>
+            <p className="text-sm text-green-300/70">Redirecting you to your dashboard…</p>
           </div>
         ) : (
-          <form onSubmit={handleUpdatePassword} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">New Password</label>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-400/60" />
               <input
-                type="password"
                 required
+                type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100"
+                onChange={e => setPassword(e.target.value)}
+                placeholder="New password (min 6 chars)"
+                minLength={6}
+                disabled={!ready || loading}
+                className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">Confirm New Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-400/60" />
               <input
-                type="password"
                 required
+                type="password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100"
+                onChange={e => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                minLength={6}
+                disabled={!ready || loading}
+                className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
 
-            <button
+            {error && (
+              <p className="rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-xs text-red-400">
+                {error}
+              </p>
+            )}
+
+            <Button
               type="submit"
-              disabled={loading}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-xs shadow-lg"
+              disabled={loading || !ready}
+              className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-500 text-white font-bold text-base shadow-lg shadow-green-900/40 gap-2"
             >
-              {loading ? 'Updating…' : 'Update Password'}
-            </button>
+              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Update Password"}
+            </Button>
           </form>
         )}
       </div>
