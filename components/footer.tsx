@@ -1,9 +1,20 @@
+'use client'
+
+import { useState } from 'react'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowRight, Mail, Phone, MapPin } from "lucide-react"
+import { ArrowRight, Mail, Phone, MapPin, Linkedin, Github, Twitter } from "lucide-react"
 
 export function Footer() {
+  const [email, setEmail] = useState('')
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) return
+    alert("Thanks! You've been added to our mailing list.")
+    setEmail('')
+  }
   return (
     <footer className="bg-foreground text-background">
       {/* CTA Section */}
@@ -58,6 +69,21 @@ export function Footer() {
                   <span>Lagos, Nigeria</span>
                 </div>
               </div>
+
+              <div className="mt-6 flex gap-4">
+                <Link href="https://www.linkedin.com/company/aurabridge-health" target="_blank" rel="noopener noreferrer" className="text-background/70 hover:text-background transition-colors">
+                  <Linkedin className="h-5 w-5" />
+                  <span className="sr-only">LinkedIn</span>
+                </Link>
+                <Link href="https://github.com/Torisbrain/v0-aura-pharm-app" target="_blank" rel="noopener noreferrer" className="text-background/70 hover:text-background transition-colors">
+                  <Github className="h-5 w-5" />
+                  <span className="sr-only">GitHub</span>
+                </Link>
+                <Link href="https://x.com/AuraBridgeHQ" target="_blank" rel="noopener noreferrer" className="text-background/70 hover:text-background transition-colors">
+                  <Twitter className="h-5 w-5" />
+                  <span className="sr-only">Twitter / X</span>
+                </Link>
+              </div>
             </div>
 
             {/* Product */}
@@ -90,16 +116,19 @@ export function Footer() {
               <p className="mb-4 text-sm text-background/70">
                 Get the latest updates on pharmacy tech and health innovations in West Africa.
               </p>
-              <div className="flex gap-2">
+              <form onSubmit={handleSubscribe} className="flex gap-2">
                 <Input 
                   type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email" 
                   className="border-background/20 bg-background/10 text-background placeholder:text-background/50"
+                  required
                 />
-                <Button variant="secondary" size="icon">
+                <Button type="submit" variant="secondary" size="icon">
                   <ArrowRight className="h-4 w-4" />
                 </Button>
-              </div>
+              </form>
             </div>
           </div>
 
