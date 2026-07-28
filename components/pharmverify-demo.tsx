@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { CameraCapture } from "@/components/camera-capture"
 import { Shield, CheckCircle, Camera, QrCode, Loader2, AlertTriangle, X, Search, Building2, Calendar, Pill, Hash, ExternalLink } from "lucide-react"
 
 interface NAFDACProduct {
@@ -33,16 +34,19 @@ export function PharmVerifyDemo() {
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<NAFDACProduct | null>(null)
   const [showScanner, setShowScanner] = useState(false)
+  const [cameraError, setCameraError] = useState("")
+  const [cameraOpen, setCameraOpen] = useState(false)
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return
+  const handleSearch = async (queryOverride?: string) => {
+    const query = queryOverride ?? searchQuery
+    if (!query.trim()) return
 
     setScanState("scanning")
     setSearchResult(null)
     setSelectedProduct(null)
 
     try {
-      const response = await fetch(`/api/nafdac?q=${encodeURIComponent(searchQuery)}`)
+      const response = await fetch(`/api/nafdac?q=${encodeURIComponent(query)}`)
       const data: SearchResult = await response.json()
 
       setSearchResult(data)
@@ -62,11 +66,41 @@ export function PharmVerifyDemo() {
     setSearchQuery("")
     setSearchResult(null)
     setSelectedProduct(null)
+    setCameraError("")
   }
 
   const handleTryDemo = () => {
     setShowScanner(true)
     setSearchQuery("Amoxicillin")
+  }
+
+  const handlePhotoCaptured = async (base64: string, mediaType: string) => {
+    setScanState("scanning")
+    setCameraError("")
+
+    try {
+      const scanRes = await fetch("/api/verify-drug", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64, mediaType }),
+      })
+      const scanData = await scanRes.json()
+
+      if (!scanData.drugName || scanData.drugName.includes("Unable to identify")) {
+        setCameraError("Could not read the drug from that photo. Try a clearer photo, or search by name below.")
+        setScanState("idle")
+        return
+      }
+
+      // Prefer the NAFDAC number if it was readable — more precise than name alone
+      const query = scanData.nafdacNumber || scanData.drugName
+      setSearchQuery(query)
+      await handleSearch(query)
+    } catch (err) {
+      console.error("Camera scan error:", err)
+      setCameraError("Something went wrong reading that photo. Please try again or search manually.")
+      setScanState("idle")
+    }
   }
 
   const getVerificationScore = (product: NAFDACProduct) => {
@@ -81,6 +115,12 @@ export function PharmVerifyDemo() {
 
   return (
     <section id="pharmverify" className="bg-muted/50 px-4 py-20">
+      <CameraCapture
+        open={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onCapture={handlePhotoCaptured}
+      />
+
       <div className="container mx-auto">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div>
@@ -88,16 +128,16 @@ export function PharmVerifyDemo() {
               <Shield className="h-4 w-4" />
               PharmVerify Technology
             </div>
-            
+
             <h2 className="mb-6 text-balance text-3xl font-bold tracking-tight text-foreground md:text-4xl">
               Verify Any NAFDAC Registered Drug
             </h2>
-            
+
             <p className="mb-6 text-pretty text-lg text-muted-foreground">
-              Access Nigeria&apos;s official NAFDAC Greenbook database to verify any registered pharmaceutical product instantly. 
+              Access Nigeria&apos;s official NAFDAC Greenbook database to verify any registered pharmaceutical product instantly.
               Search by drug name, NAFDAC registration number, or active ingredient.
             </p>
-            
+
             <ul className="mb-8 space-y-4">
               {[
                 "Search 60+ common Nigerian drugs and counting",
@@ -111,23 +151,23 @@ export function PharmVerifyDemo() {
                 </li>
               ))}
             </ul>
-            
-            <Button 
-              size="lg" 
+
+            <Button
+              size="lg"
               className="gap-2 bg-accent hover:bg-accent/90"
               onClick={handleTryDemo}
             >
               <Camera className="h-4 w-4" />
               Try PharmVerify Demo
             </Button>
-            
+
             {showScanner && (
               <p className="mt-3 text-sm text-muted-foreground">
                 Try: <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">Panadol</code>, <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">Coartem</code>, <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">Augmentin</code>, <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">04-8350</code>
               </p>
             )}
           </div>
-          
+
           <div className="flex justify-center">
             <Card className="w-full max-w-sm border-2 border-accent/20 bg-card shadow-xl">
               <CardHeader className="border-b bg-accent/5 text-center">
@@ -140,14 +180,24 @@ export function PharmVerifyDemo() {
               <CardContent className="p-6">
                 {scanState === "idle" && (
                   <>
-                    <div className="mb-4 flex aspect-square items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50">
+                    <button
+                      type="button"
+                      onClick={() => { setCameraError(""); setCameraOpen(true) }}
+                      className="mb-4 flex aspect-square w-full items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 transition-colors hover:border-accent hover:bg-accent/5"
+                    >
                       <div className="text-center">
-                        <QrCode className="mx-auto mb-2 h-12 w-12 text-muted-foreground/50" />
-                        <p className="text-sm text-muted-foreground">Scan barcode or</p>
-                        <p className="mt-1 text-xs text-muted-foreground/70">search NAFDAC database below</p>
+                        <Camera className="mx-auto mb-2 h-12 w-12 text-muted-foreground/50" />
+                        <p className="text-sm font-medium text-foreground">Tap to scan with camera</p>
+                        <p className="mt-1 text-xs text-muted-foreground/70">or search NAFDAC database below</p>
                       </div>
-                    </div>
-                    
+                    </button>
+
+                    {cameraError && (
+                      <div className="mb-4 rounded-lg bg-destructive/10 p-3 text-xs text-destructive">
+                        {cameraError}
+                      </div>
+                    )}
+
                     <div className="space-y-3">
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -159,9 +209,9 @@ export function PharmVerifyDemo() {
                           className="pl-10"
                         />
                       </div>
-                      <Button 
-                        className="w-full gap-2 bg-accent hover:bg-accent/90" 
-                        onClick={handleSearch}
+                      <Button
+                        className="w-full gap-2 bg-accent hover:bg-accent/90"
+                        onClick={() => handleSearch()}
                         disabled={!searchQuery.trim()}
                       >
                         <Search className="h-4 w-4" />
@@ -189,7 +239,6 @@ export function PharmVerifyDemo() {
 
                 {scanState === "result" && (
                   <div className="space-y-4">
-                    {/* No results */}
                     {searchResult?.results.length === 0 && (
                       <div className="rounded-lg bg-destructive/10 p-4 text-center">
                         <X className="mx-auto mb-2 h-12 w-12 text-destructive" />
@@ -198,13 +247,8 @@ export function PharmVerifyDemo() {
                           &quot;{searchQuery}&quot; is not in our database. Verify directly on NAFDAC Greenbook or report if suspicious.
                         </p>
                         <div className="mt-3 flex flex-col gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full gap-2"
-                            asChild
-                          >
-                            <a 
+                          <Button variant="outline" size="sm" className="w-full gap-2" asChild>
+                            <a
                               href={`https://greenbook.nafdac.gov.ng/?s=${encodeURIComponent(searchQuery)}`}
                               target="_blank"
                               rel="noopener noreferrer"
@@ -221,7 +265,6 @@ export function PharmVerifyDemo() {
                       </div>
                     )}
 
-                    {/* Single result or selected product */}
                     {selectedProduct && (
                       <div className="space-y-4">
                         <div className={`flex flex-col items-center rounded-lg p-4 ${
@@ -276,19 +319,13 @@ export function PharmVerifyDemo() {
                         </div>
 
                         {searchResult && searchResult.results.length > 1 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                            onClick={() => setSelectedProduct(null)}
-                          >
+                          <Button variant="outline" size="sm" className="w-full" onClick={() => setSelectedProduct(null)}>
                             View all {searchResult.results.length} results
                           </Button>
                         )}
                       </div>
                     )}
 
-                    {/* Multiple results list */}
                     {!selectedProduct && searchResult && searchResult.results.length > 0 && (
                       <div className="space-y-2">
                         <p className="text-sm text-muted-foreground">
@@ -311,12 +348,8 @@ export function PharmVerifyDemo() {
                                     )}
                                     <p className="text-sm font-medium">{product.productName}</p>
                                   </div>
-                                  <p className="mt-1 text-xs text-muted-foreground">
-                                    {product.activeIngredients}
-                                  </p>
-                                  <p className="mt-1 font-mono text-xs text-muted-foreground">
-                                    {product.nrn}
-                                  </p>
+                                  <p className="mt-1 text-xs text-muted-foreground">{product.activeIngredients}</p>
+                                  <p className="mt-1 font-mono text-xs text-muted-foreground">{product.nrn}</p>
                                 </div>
                                 <Badge className={product.status === "Active" ? "bg-accent" : "bg-destructive"}>
                                   {product.status}
@@ -347,4 +380,4 @@ export function PharmVerifyDemo() {
       </div>
     </section>
   )
-}
+} 
