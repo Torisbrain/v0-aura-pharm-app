@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { CameraCapture } from '@/components/camera-capture'
 import { 
   Shield, Zap, ChevronRight, PhoneCall, HeartHandshake, Stethoscope, 
   Package, AlertTriangle, Users, Activity, Plus, Camera, Search, 
@@ -28,12 +29,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   
-  // Data States
   const [drugs, setDrugs] = useState<any[]>(INITIAL_DRUGS)
   const [patients, setPatients] = useState<any[]>(INITIAL_PATIENTS)
   const [searchTerm, setSearchTerm] = useState('')
   
-  // Modals
   const [showAddModal, setShowAddModal] = useState(false)
   const [showScanModal, setShowScanModal] = useState(false)
   const [showSosModal, setShowSosModal] = useState(false)
@@ -44,7 +43,6 @@ export default function DashboardPage() {
   const [selectedPatient, setSelectedPatient] = useState<any>(null)
   const [showCarePlanModal, setShowCarePlanModal] = useState(false)
 
-  // Form State
   const [drugName, setDrugName] = useState('')
   const [category, setCategory] = useState('Antibiotics')
   const [price, setPrice] = useState('3500')
@@ -52,11 +50,10 @@ export default function DashboardPage() {
   const [nafdac, setNafdac] = useState('')
   const [scanSource, setScanSource] = useState<'manual' | 'ai_scan'>('manual')
 
-  // AI Scanner state
   const [scanning, setScanning] = useState(false)
+  const [showCamera, setShowCamera] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Care plan editing state
   const [carePlanText, setCarePlanText] = useState('')
   const [refillDate, setRefillDate] = useState('')
 
@@ -88,27 +85,14 @@ export default function DashboardPage() {
     loadData()
   }, [router])
 
-  // REAL ANTHROPIC CLAUDE VISION DRUG SCANNER
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handlePhotoCaptured = async (base64: string, mediaType: string) => {
     setScanning(true)
 
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => {
-          const result = reader.result as string
-          resolve(result.split(",")[1])
-        }
-        reader.onerror = reject
-        reader.readAsDataURL(file)
-      })
-
       const res = await fetch("/api/scan-drug", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64, mediaType: file.type }),
+        body: JSON.stringify({ image: base64, mediaType }),
       })
       const data = await res.json()
 
@@ -393,20 +377,17 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                accept="image/*" 
-                capture="environment" 
-                onChange={handleFileChange} 
-                className="hidden" 
+              <CameraCapture
+                open={showCamera}
+                onClose={() => setShowCamera(false)}
+                onCapture={handlePhotoCaptured}
               />
 
               <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => setShowCamera(true)}
                 className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5"
               >
-                <Camera className="w-4 h-4" /> 📷 Scan Drug (Claude AI Vision)
+                <Camera className="w-4 h-4" /> 📷 Scan & Add Stock
               </button>
 
               <button
