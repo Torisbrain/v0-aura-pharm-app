@@ -24,6 +24,13 @@ const INITIAL_PATIENTS = [
   { id: '3', name: 'Babatunde Sanusi', phone: '+234 803 444 5566', adherence: 78, condition: 'Asthma', lastRefill: '2026-07-02', carePlan: 'Ventolin inhaler 2 puffs as needed for shortness of breath' }
 ]
 
+function getTimeGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return "Good morning"
+  if (hour < 17) return "Good afternoon"
+  return "Good evening"
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -275,7 +282,7 @@ export default function DashboardPage() {
 
         <div className="mb-6">
           <h2 className="text-2xl font-black text-slate-900">
-            Good afternoon, {user?.user_metadata?.full_name || 'Victoria Robin'}! 👋
+            {getTimeGreeting()}, {user?.user_metadata?.full_name || 'Victoria Robin'}! 👋
           </h2>
           <p className="text-sm text-slate-600">Here's what's happening at your pharmacy today.</p>
         </div>
